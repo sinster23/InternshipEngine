@@ -1,25 +1,6 @@
-import { Users, Target, TrendingUp, Clock, Calendar, BarChart3 } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { Clock, Calendar, BarChart3, Target } from 'lucide-react';
 
-export default function () {
-  const scrollRef = useRef(null);
-
-  useEffect(() => {
-    const scrollContainer = scrollRef.current;
-    if (!scrollContainer) return;
-
-    const scroll = () => {
-      if (scrollContainer.scrollLeft >= scrollContainer.scrollWidth - scrollContainer.clientWidth) {
-        scrollContainer.scrollLeft = 0;
-      } else {
-        scrollContainer.scrollLeft += 1;
-      }
-    };
-
-    const interval = setInterval(scroll, 30);
-    return () => clearInterval(interval);
-  }, []);
-
+export default function TrustedCompanies() {
   const companies = [
     'Mindtree', 'TCS', 'Wipro', 'Tech Mahindra', 'Instacart', 'Spotify',
     'Google', 'Microsoft', 'Amazon', 'Meta', 'Apple', 'Infosys'
@@ -65,19 +46,19 @@ export default function () {
             <h2 className="text-white text-lg font-medium mb-8">
               Where our students get hired - 10,000+ PM internships available
             </h2>
-            <div 
-              ref={scrollRef}
-              className="flex space-x-12 overflow-hidden whitespace-nowrap"
-              style={{ scrollBehavior: 'smooth' }}
-            >
-              {[...companies, ...companies].map((company, index) => (
-                <div 
-                  key={index}
-                  className="flex-shrink-0 text-white/80 text-2xl font-bold tracking-wide"
-                >
-                  {company}
-                </div>
-              ))}
+
+            {/* Smooth Infinite Scroll */}
+            <div className="overflow-hidden relative">
+              <div className="flex animate-scroll">
+                {[...companies, ...companies].map((company, index) => (
+                  <div
+                    key={index}
+                    className="flex-shrink-0 text-white/80 text-2xl font-bold tracking-wide mx-8"
+                  >
+                    {company}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -97,10 +78,7 @@ export default function () {
 
           <div className="grid md:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <div 
-                key={index}
-                className="text-center"
-              >
+              <div key={index} className="text-center">
                 <div className="mb-6 flex justify-center">
                   {feature.icon}
                 </div>
@@ -122,6 +100,7 @@ export default function () {
         </div>
       </section>
 
+      {/* Smooth Scroll Keyframes */}
       <style jsx>{`
         @keyframes scroll {
           0% {
@@ -132,10 +111,9 @@ export default function () {
           }
         }
         .animate-scroll {
+          width: max-content;
           animation: scroll 20s linear infinite;
-        }
-        .animate-scroll:hover {
-          animation-play-state: paused;
+          display: flex;
         }
       `}</style>
     </>
