@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
-
+import { Link } from "react-router-dom";
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -19,9 +19,11 @@ export default function Navbar() {
               <a href="#features" className="text-blue-700 hover:text-blue-900 transition-colors duration-200 font-medium">Features</a>
               <a href="#testimonials" className="text-blue-700 hover:text-blue-900 transition-colors duration-200 font-medium">Reviews</a>
               <a href="#pricing" className="text-blue-700 hover:text-blue-900 transition-colors duration-200 font-medium">Pricing</a>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-md">
-                Sign Up
-              </button>
+             <Link to="/signin">
+  <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-md">
+    Sign Up
+  </button>
+</Link>
             </div>
 
             <button 
