@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, BookOpen, GraduationCap, Code, MapPin, Clock, Plus, X, ChevronRight, ChevronLeft, Check } from 'lucide-react';
+import { User, BookOpen, GraduationCap, Code, MapPin, Clock, Plus, X, ChevronRight, ChevronLeft, Check, Star, Sparkles } from 'lucide-react';
 
 export default function StudentDetailsPage() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -159,11 +159,6 @@ export default function StudentDetailsPage() {
     setCurrentStep(0);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setCurrentStep(0);
-  };
-
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && currentStep === 3) { // Skills step
       e.preventDefault();
@@ -173,198 +168,240 @@ export default function StudentDetailsPage() {
 
   const currentStepData = steps[currentStep];
   const Icon = currentStepData?.icon;
+  const completedSteps = steps.filter((_, index) => isStepCompleted(index)).length;
 
   return (
-    <div className="min-h-screen bg-white flex">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex relative overflow-hidden">
       {/* Left Side - Modal Area */}
-      <div className="w-2/3 flex items-center justify-center p-8 relative">
+      <div className="w-3/4 mt-15 p-8 relative z-10">
         {!isModalOpen ? (
           /* Initial State - Start Button */
           <div className="text-center">
-            <div className="flex justify-center mb-6">
-              <div className="bg-blue-100 p-4 rounded-full">
-                <User className="w-12 h-12 text-blue-600" />
+            <div className="flex justify-center mb-8">
+              <div className="relative">
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-3xl shadow-2xl transform rotate-3 animate-pulse">
+                  <User className="w-16 h-16 text-white" />
+                </div>
+                <div className="absolute -top-2 -right-2">
+                  <Sparkles className="w-8 h-8 text-blue-400 animate-spin" />
+                </div>
               </div>
             </div>
-            <h1 className="text-4xl font-extrabold text-blue-900 mb-4">
-              Complete Your Profile
-            </h1>
-            <p className="text-xl font-semibold text-blue-700 mb-8">
-              Tell us about yourself to find the perfect internship match
-            </p>
+            <div className="mb-8">
+              <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800 mb-6 leading-tight">
+                Complete Your Profile
+              </h1>
+              <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-blue-600 mx-auto mb-6 rounded-full"></div>
+              <p className="text-2xl font-semibold text-blue-700 mb-4 max-w-2xl mx-auto leading-relaxed">
+                Tell us about yourself to find the perfect internship match
+              </p>
+              <p className="text-lg text-blue-600 opacity-80">
+                Join thousands of students who have found their dream internships
+              </p>
+            </div>
             <button
               onClick={openModal}
-              className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition duration-200"
+              className="group bg-gradient-to-r from-blue-600 to-blue-700 text-white px-12 py-6 rounded-2xl font-bold text-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-105 hover:shadow-xl active:scale-95 shadow-lg"
             >
-              Get Started
+              <span className="flex items-center justify-center">
+                Get Started
+                <ChevronRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
+              </span>
             </button>
           </div>
         ) : (
-          /* Modal Content */
-          <div className="bg-white border-2 border-blue-100 rounded-lg shadow-2xl w-full max-w-md">
-            {/* Progress Bar */}
-            <div className="bg-blue-50 p-4 border-b border-blue-100">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-blue-600">
-                  Step {currentStep + 1} of {steps.length}
-                </span>
-                <button
-                  onClick={closeModal}
-                  className="text-blue-400 hover:text-blue-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+          /* Step Content - Direct Display */
+          <div className="text-center max-w-3xl mx-auto">
+            {/* Step Header */}
+            <div className="mb-12">
+              <div className="flex justify-center mb-8">
+                <div className="relative">
+                  <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-3xl shadow-xl transform hover:scale-105 transition-transform duration-300">
+                    <Icon className="w-12 h-12 text-white" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">{currentStep + 1}</span>
+                  </div>
+                </div>
               </div>
-              <div className="w-full bg-blue-200 rounded-full h-2">
-                <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-                ></div>
+              <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800 mb-6 leading-tight">
+                {currentStepData.title}
+              </h1>
+              <p className="text-2xl font-medium text-blue-700 mb-4">
+                {currentStepData.subtitle}
+              </p>
+              
+              {/* Enhanced Progress Bar */}
+              <div className="mb-8 max-w-lg mx-auto">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-sm font-semibold text-blue-600">
+                    Step {currentStep + 1} of {steps.length}
+                  </span>
+                  <span className="text-sm font-semibold text-blue-600">
+                    {Math.round(((currentStep + 1) / steps.length) * 100)}% Complete
+                  </span>
+                </div>
+                <div className="relative w-full bg-blue-100 rounded-full h-3 shadow-inner">
+                  <div 
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-700 ease-out shadow-sm relative overflow-hidden"
+                    style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+                  >
+                    <div className="absolute inset-0 bg-white opacity-30 animate-pulse"></div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Step Content */}
-            <div className="p-6">
-              {/* Step Header */}
-              <div className="text-center mb-6">
-                <div className="flex justify-center mb-4">
-                  <div className="bg-blue-100 p-3 rounded-full">
-                    <Icon className="w-6 h-6 text-blue-600" />
-                  </div>
-                </div>
-                <h2 className="text-xl font-bold text-blue-900 mb-2">
-                  {currentStepData.title}
-                </h2>
-                <p className="text-blue-700 text-sm">
-                  {currentStepData.subtitle}
-                </p>
-              </div>
-
-              {/* Form Input */}
-              <div className="mb-6">
-                {currentStepData.type === 'select' && (
-                  <div className="relative">
-                    <select
-                      value={formData[currentStepData.field]}
-                      onChange={(e) => updateFormData(currentStepData.field, e.target.value)}
-                      className="w-full px-4 py-4 border-2 border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-blue-800 bg-white appearance-none cursor-pointer text-sm font-medium shadow-sm hover:border-blue-300 transition-all duration-200"
-                    >
-                      <option value="" disabled className="text-blue-400">
-                        Choose an option...
+            {/* Form Input */}
+            <div className="mb-12">
+              {currentStepData.type === 'select' && (
+                <div className="relative max-w-lg mx-auto">
+                  <select
+                    value={formData[currentStepData.field]}
+                    onChange={(e) => updateFormData(currentStepData.field, e.target.value)}
+                    className="w-full px-8 py-6 border-3 border-blue-200 rounded-2xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 text-blue-800 bg-white appearance-none cursor-pointer text-lg font-semibold shadow-lg hover:border-blue-300 transition-all duration-300 hover:shadow-xl"
+                  >
+                    <option value="" disabled className="text-blue-400">
+                      Choose an option...
+                    </option>
+                    {currentStepData.options.map((option) => (
+                      <option key={option} value={option} className="text-blue-800 py-3 font-medium">
+                        {option}
                       </option>
-                      {currentStepData.options.map((option) => (
-                        <option key={option} value={option} className="text-blue-800 py-2">
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                    {/* Custom Dropdown Arrow */}
-                    <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                      <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    ))}
+                  </select>
+                  {/* Enhanced Dropdown Arrow */}
+                  <div className="absolute inset-y-0 right-0 flex items-center px-6 pointer-events-none">
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
                       </svg>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
 
-                {currentStepData.type === 'input' && (
+              {currentStepData.type === 'input' && (
+                <div className="max-w-lg mx-auto">
                   <input
                     type="text"
                     value={formData[currentStepData.field]}
                     onChange={(e) => updateFormData(currentStepData.field, e.target.value)}
                     placeholder={currentStepData.placeholder}
-                    className="w-full px-4 py-4 border-2 border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-blue-800"
+                    className="w-full px-8 py-6 border-3 border-blue-200 rounded-2xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 text-blue-800 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                   />
-                )}
+                </div>
+              )}
 
-                {currentStepData.type === 'skills' && (
-                  <div>
-                    {/* Add Skill Input */}
-                    <div className="flex space-x-2 mb-4">
-                      <input
-                        type="text"
-                        value={newSkill}
-                        onChange={(e) => setNewSkill(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        placeholder="Add a skill (e.g., JavaScript, Communication)"
-                        className="flex-1 px-4 py-3 border-2 border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-blue-800"
-                      />
-                      <button
-                        onClick={addSkill}
-                        className="bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition duration-200"
+              {currentStepData.type === 'skills' && (
+                <div className="max-w-2xl mx-auto">
+                  {/* Add Skill Input */}
+                  <div className="flex space-x-4 mb-8">
+                    <input
+                      type="text"
+                      value={newSkill}
+                      onChange={(e) => setNewSkill(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="Add a skill (e.g., JavaScript, Communication)"
+                      className="flex-1 px-8 py-6 border-3 border-blue-200 rounded-2xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 text-blue-800 text-lg font-semibold shadow-lg"
+                    />
+                    <button
+                      onClick={addSkill}
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-6 rounded-2xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
+                    >
+                      <Plus className="w-6 h-6" />
+                    </button>
+                  </div>
+
+                  {/* Skills Display */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-64 overflow-y-auto">
+                    {formData.skills.map((skill, index) => (
+                      <div
+                        key={index}
+                        className="group flex items-center justify-between bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 px-6 py-4 rounded-xl hover:from-blue-100 hover:to-blue-150 transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md"
                       >
-                        <Plus className="w-5 h-5" />
-                      </button>
-                    </div>
-
-                    {/* Skills Display */}
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {formData.skills.map((skill, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between bg-blue-50 border border-blue-200 px-3 py-2 rounded-lg"
+                        <span className="text-blue-800 text-base font-semibold flex items-center">
+                          <Star className="w-4 h-4 mr-2 text-blue-500" />
+                          {skill}
+                        </span>
+                        <button
+                          onClick={() => removeSkill(skill)}
+                          className="text-blue-400 hover:text-red-500 transition-colors ml-3 p-1 rounded-full hover:bg-red-50"
                         >
-                          <span className="text-blue-800 text-sm font-medium">{skill}</span>
-                          <button
-                            onClick={() => removeSkill(skill)}
-                            className="text-blue-400 hover:text-red-500 transition-colors"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
 
-                    {formData.skills.length === 0 && (
-                      <p className="text-blue-500 text-sm text-center py-4">
+                  {formData.skills.length === 0 && (
+                    <div className="text-center py-12">
+                      <Code className="w-16 h-16 text-blue-300 mx-auto mb-4" />
+                      <p className="text-blue-500 text-lg">
                         No skills added yet. Add at least one skill to continue.
                       </p>
-                    )}
-                  </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Enhanced Navigation Buttons */}
+            <div className="flex justify-center space-x-6">
+              <button
+                onClick={handlePrevious}
+                disabled={currentStep === 0}
+                className={`flex items-center px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-lg ${
+                  currentStep === 0
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-sm'
+                    : 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 hover:from-blue-200 hover:to-blue-300 transform hover:scale-105 active:scale-95 hover:shadow-xl'
+                }`}
+              >
+                <ChevronLeft className="w-6 h-6 mr-2" />
+                Previous
+              </button>
+
+              <button
+                onClick={handleNext}
+                className="flex items-center bg-gradient-to-r from-blue-600 to-blue-700 text-white px-12 py-4 rounded-2xl font-bold text-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
+              >
+                {currentStep === steps.length - 1 ? (
+                  <>
+                    <Check className="w-6 h-6 mr-2" />
+                    Complete Profile
+                  </>
+                ) : (
+                  <>
+                    Next
+                    <ChevronRight className="w-6 h-6 ml-2" />
+                  </>
                 )}
-              </div>
-
-              {/* Navigation Buttons */}
-              <div className="flex justify-between space-x-4">
-                <button
-                  onClick={handlePrevious}
-                  disabled={currentStep === 0}
-                  className={`flex items-center px-4 py-3 rounded-lg font-medium transition duration-200 ${
-                    currentStep === 0
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                  }`}
-                >
-                  <ChevronLeft className="w-4 h-4 mr-1" />
-                  Previous
-                </button>
-
-                <button
-                  onClick={handleNext}
-                  className="flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition duration-200"
-                >
-                  {currentStep === steps.length - 1 ? 'Complete' : 'Next'}
-                  {currentStep !== steps.length - 1 && <ChevronRight className="w-4 h-4 ml-1" />}
-                </button>
-              </div>
+              </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Right Side - Progress Tree */}
-      <div className="w-1/2 bg-gradient-to-br from-blue-50 to-blue-100 p-8 flex items-center justify-center">
-        <div className="w-full max-w-md">
+      {/* Enhanced Right Side - Progress Tree */}
+      <div className="w-1/4 bg-gradient-to-br from-blue-100 via-blue-50 to-white p-8 flex items-center justify-center shadow-2xl relative">
+        {/* Decorative Elements */}
+        <div className="absolute top-10 right-10 w-20 h-20 bg-blue-200 rounded-full opacity-20"></div>
+        <div className="absolute bottom-20 left-6 w-16 h-16 bg-blue-300 rounded-full opacity-15"></div>
+        
+        <div className="w-full max-w-xs">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-blue-900 mb-2">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl mb-4 shadow-lg">
+              <GraduationCap className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-3xl font-black text-blue-900 mb-3">
               Your Progress
             </h2>
-            <p className="text-blue-700">
+            <p className="text-blue-700 text-sm font-medium">
               Complete all steps to build your profile
             </p>
           </div>
 
-          {/* Progress Tree */}
+          {/* Enhanced Progress Tree */}
           <div className="space-y-4 relative">
             {steps.map((step, index) => {
               const StepIcon = step.icon;
@@ -373,36 +410,36 @@ export default function StudentDetailsPage() {
               const isPast = index < currentStep;
               
               return (
-                <div key={index} className="flex items-center space-x-4 relative">
-                  {/* Step Indicator */}
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 z-10 ${
+                <div key={index} className="flex items-center space-x-4 relative group">
+                  {/* Enhanced Step Indicator */}
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 z-10 flex-shrink-0 shadow-lg ${
                     isCompleted 
-                      ? 'bg-green-500 text-white' 
+                      ? 'bg-gradient-to-r from-green-500 to-green-600 text-white transform scale-110 shadow-green-200' 
                       : isCurrent 
-                        ? 'bg-blue-600 text-white animate-pulse' 
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white animate-pulse transform scale-110 shadow-blue-200' 
                         : isPast 
-                          ? 'bg-blue-200 text-blue-600' 
-                          : 'bg-white border-2 border-blue-200 text-blue-400'
+                          ? 'bg-gradient-to-r from-blue-200 to-blue-300 text-blue-700 shadow-blue-100' 
+                          : 'bg-white border-3 border-blue-200 text-blue-400 shadow-blue-50'
                   }`}>
                     {isCompleted ? (
-                      <Check className="w-5 h-5" />
+                      <Check className="w-6 h-6" />
                     ) : (
                       <StepIcon className="w-5 h-5" />
                     )}
                   </div>
 
-                  {/* Connector Line */}
+                  {/* Enhanced Connector Line */}
                   {index < steps.length - 1 && (
                     <div 
-                      className={`absolute left-5 top-10 w-0.5 h-8 transition-colors duration-300 ${
-                        isCompleted ? 'bg-green-300' : 'bg-blue-200'
+                      className={`absolute left-6 top-12 w-1 h-8 transition-all duration-500 rounded-full ${
+                        isCompleted ? 'bg-gradient-to-b from-green-400 to-green-300' : 'bg-gradient-to-b from-blue-200 to-blue-150'
                       }`}
                     ></div>
                   )}
 
-                  {/* Step Content */}
-                  <div className="flex-1">
-                    <h3 className={`font-semibold transition-colors duration-300 ${
+                  {/* Enhanced Step Content */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className={`font-bold text-sm transition-colors duration-300 ${
                       isCompleted 
                         ? 'text-green-700' 
                         : isCurrent 
@@ -414,17 +451,19 @@ export default function StudentDetailsPage() {
                       {step.title}
                     </h3>
                     {(isCurrent || isCompleted) && (
-                      <p className="text-sm text-blue-600 mt-1">
-                        {isCompleted ? 'Completed' : 'In Progress'}
+                      <p className={`text-xs mt-1 font-semibold ${
+                        isCompleted ? 'text-green-600' : 'text-blue-600'
+                      }`}>
+                        {isCompleted ? 'Completed ✓' : 'In Progress...'}
                       </p>
                     )}
                     {isCompleted && formData[step.field] && step.field !== 'skills' && (
-                      <p className="text-xs text-green-600 mt-1 font-medium">
+                      <p className="text-xs text-green-600 mt-1 font-medium truncate bg-green-50 px-2 py-1 rounded">
                         {formData[step.field]}
                       </p>
                     )}
                     {isCompleted && step.field === 'skills' && formData.skills.length > 0 && (
-                      <p className="text-xs text-green-600 mt-1 font-medium">
+                      <p className="text-xs text-green-600 mt-1 font-medium bg-green-50 px-2 py-1 rounded">
                         {formData.skills.length} skill{formData.skills.length > 1 ? 's' : ''} added
                       </p>
                     )}
@@ -434,13 +473,19 @@ export default function StudentDetailsPage() {
             })}
           </div>
 
-          {/* Completion Status */}
-          <div className="mt-8 p-4 bg-white rounded-lg shadow-sm">
+          {/* Enhanced Completion Status */}
+          <div className="mt-8 p-6 bg-gradient-to-r from-white to-blue-50 rounded-2xl shadow-lg border border-blue-100">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-900">
-                {steps.filter((_, index) => isStepCompleted(index)).length} / {steps.length}
+              <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800 mb-2">
+                {completedSteps} / {steps.length}
               </div>
-              <p className="text-sm text-blue-700">Steps Completed</p>
+              <p className="text-sm text-blue-700 font-semibold">Steps Completed</p>
+              <div className="mt-3 w-full bg-blue-100 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-700"
+                  style={{ width: `${(completedSteps / steps.length) * 100}%` }}
+                ></div>
+              </div>
             </div>
           </div>
         </div>
