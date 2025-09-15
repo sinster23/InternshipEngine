@@ -1,492 +1,139 @@
-import { useState } from 'react';
-import { Upload, FileText, CheckCircle, X, User, Mail, Lock, Phone, MapPin, Calendar, Briefcase } from 'lucide-react';
+import React, { useState } from 'react';
+import { Eye, EyeOff, Mail, Lock, User, Apple } from 'lucide-react';
+import { Link } from "react-router-dom";
 
-export default function SignUpWithResumeUpload() {
-  const [showSignUp, setShowSignUp] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [uploadedFile, setUploadedFile] = useState(null);
-  const [dragActive, setDragActive] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    phone: '',
-    location: '',
-    university: '',
-    graduationYear: '',
-    experience: '',
-    linkedIn: '',
-    portfolio: ''
-  });
+export default function InternMatchSignIn() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleFileUpload = (files) => {
-    const file = files[0];
-    if (file && (file.type === 'application/pdf' || file.name.endsWith('.pdf') || 
-                 file.name.endsWith('.doc') || file.name.endsWith('.docx'))) {
-      setUploadedFile({
-        name: file.name,
-        size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
-        type: file.type || 'document'
-      });
-    } else {
-      alert('Please upload a PDF or Word document');
-    }
-  };
-
-  const handleDrag = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
+    console.log('Sign in attempted with:', { email, password });
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileUpload(e.dataTransfer.files);
-    }
-  };
-
-  const removeFile = () => {
-    setUploadedFile(null);
-  };
-
-  const nextStep = () => {
-    if (currentStep < 3) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const handleSubmit = () => {
-    // Handle form submission here
-    alert('Account created successfully! Welcome to PM Internships Hub.');
-    setShowSignUp(false);
-  };
-
-  if (showSignUp) {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 rounded-t-2xl relative">
-            <button
-              onClick={() => setShowSignUp(false)}
-              className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            <h2 className="text-3xl font-bold mb-2">Join PM Internships Hub</h2>
-            <p className="text-white/90">Start your product management journey today</p>
-            
-            {/* Progress Bar */}
-            <div className="mt-6 flex items-center space-x-4">
-              {[1, 2, 3].map((step) => (
-                <div key={step} className="flex items-center">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    currentStep >= step ? 'bg-white text-purple-600' : 'bg-white/30 text-white'
-                  }`}>
-                    {step}
-                  </div>
-                  {step < 3 && (
-                    <div className={`w-16 h-1 mx-2 ${
-                      currentStep > step ? 'bg-white' : 'bg-white/30'
-                    }`} />
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="mt-2 text-sm text-white/80">
-              Step {currentStep}: {
-                currentStep === 1 ? 'Personal Information' :
-                currentStep === 2 ? 'Resume Upload' : 'Additional Details'
-              }
-            </div>
-          </div>
-
-          <div className="p-6">
-            {/* Step 1: Personal Information */}
-            {currentStep === 1 && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <User className="w-4 h-4 inline mr-2" />
-                      First Name
-                    </label>
-                    <input
-                      type="text"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Last Name
-                    </label>
-                    <input
-                      type="text"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Mail className="w-4 h-4 inline mr-2" />
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <Lock className="w-4 h-4 inline mr-2" />
-                      Password
-                    </label>
-                    <input
-                      type="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Confirm Password
-                    </label>
-                    <input
-                      type="password"
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <Phone className="w-4 h-4 inline mr-2" />
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <MapPin className="w-4 h-4 inline mr-2" />
-                      Location
-                    </label>
-                    <input
-                      type="text"
-                      name="location"
-                      value={formData.location}
-                      onChange={handleInputChange}
-                      placeholder="City, Country"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 2: Resume Upload */}
-            {currentStep === 2 && (
-              <div className="space-y-6">
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Upload Your Resume</h3>
-                  <p className="text-gray-600">Help us understand your background and match you with the perfect internships</p>
-                </div>
-
-                <div
-                  className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-                    dragActive
-                      ? 'border-purple-500 bg-purple-50'
-                      : uploadedFile
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-300 hover:border-purple-400 hover:bg-purple-50'
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                >
-                  {!uploadedFile ? (
-                    <>
-                      <Upload className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                      <h4 className="text-xl font-medium text-gray-900 mb-2">
-                        Drag and drop your resume here
-                      </h4>
-                      <p className="text-gray-500 mb-4">
-                        or click to browse files
-                      </p>
-                      <input
-                        type="file"
-                        accept=".pdf,.doc,.docx"
-                        onChange={(e) => handleFileUpload(e.target.files)}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      />
-                      <button
-                        type="button"
-                        className="bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors"
-                      >
-                        Choose File
-                      </button>
-                      <p className="text-sm text-gray-400 mt-3">
-                        Supported formats: PDF, DOC, DOCX (Max 10MB)
-                      </p>
-                    </>
-                  ) : (
-                    <div className="flex items-center justify-center space-x-4">
-                      <FileText className="w-12 h-12 text-green-600" />
-                      <div className="text-left">
-                        <h4 className="text-lg font-medium text-gray-900">{uploadedFile.name}</h4>
-                        <p className="text-gray-500">{uploadedFile.size}</p>
-                      </div>
-                      <CheckCircle className="w-8 h-8 text-green-600" />
-                      <button
-                        type="button"
-                        onClick={removeFile}
-                        className="text-red-500 hover:text-red-700 transition-colors"
-                      >
-                        <X className="w-6 h-6" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-medium text-blue-900 mb-2">Why upload your resume?</h4>
-                  <ul className="text-sm text-blue-800 space-y-1">
-                    <li>• AI-powered matching with relevant internships</li>
-                    <li>• Personalized job recommendations</li>
-                    <li>• Faster application process</li>
-                    <li>• Resume optimization suggestions</li>
-                  </ul>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Additional Details */}
-            {currentStep === 3 && (
-              <div className="space-y-4">
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Tell Us More About Yourself</h3>
-                  <p className="text-gray-600">Help us personalize your experience</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      University/College
-                    </label>
-                    <input
-                      type="text"
-                      name="university"
-                      value={formData.university}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <Calendar className="w-4 h-4 inline mr-2" />
-                      Graduation Year
-                    </label>
-                    <select
-                      name="graduationYear"
-                      value={formData.graduationYear}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    >
-                      <option value="">Select year</option>
-                      {[2024, 2025, 2026, 2027, 2028].map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Briefcase className="w-4 h-4 inline mr-2" />
-                    Experience Level
-                  </label>
-                  <select
-                    name="experience"
-                    value={formData.experience}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  >
-                    <option value="">Select experience level</option>
-                    <option value="no-experience">No prior PM experience</option>
-                    <option value="some-experience">Some PM-related experience</option>
-                    <option value="internship">Previous PM internship</option>
-                    <option value="entry-level">Entry-level PM experience</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    LinkedIn Profile (Optional)
-                  </label>
-                  <input
-                    type="url"
-                    name="linkedIn"
-                    value={formData.linkedIn}
-                    onChange={handleInputChange}
-                    placeholder="https://linkedin.com/in/yourprofile"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Portfolio/Website (Optional)
-                  </label>
-                  <input
-                    type="url"
-                    name="portfolio"
-                    value={formData.portfolio}
-                    onChange={handleInputChange}
-                    placeholder="https://yourportfolio.com"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Navigation Buttons */}
-            <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
-              <button
-                type="button"
-                onClick={prevStep}
-                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                  currentStep === 1
-                    ? 'text-gray-400 cursor-not-allowed'
-                    : 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
-                }`}
-                disabled={currentStep === 1}
-              >
-                Previous
-              </button>
-
-              {currentStep < 3 ? (
-                <button
-                  type="button"
-                  onClick={nextStep}
-                  className="bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors"
-                >
-                  Next Step
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-colors"
-                >
-                  Create Account
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Main landing page preview
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
-      {/* Hero Section */}
-      <div className="container mx-auto px-4 py-20">
-        <div className="text-center">
-          <h1 className="text-6xl font-bold text-gray-900 mb-6">
-            Land Your Dream <span className="text-purple-600">PM Internship</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Connect with 10,000+ product management internship opportunities at top companies. 
-            Get matched with roles that fit your skills and aspirations.
-          </p>
-          <div className="space-x-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 flex flex-col items-center justify-center p-4">
+           {/* HEADER */}
+      <div className="mb-8 text-center">
+        <h1 className="text-4xl font-bold text-blue-600 tracking-tight">
+          InternMatch
+        </h1>
+      </div>
+      <div className="w-full max-w-lg">
+        {/* Main Sign In Card */}
+        <div className="bg-blue-50 rounded-2xl shadow-xl p-8 border border-gray-100">
+          {/* Sign In Header */}
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Log In</h2>
+            <p className="text-gray-600 text-sm">Welcome back! Please sign in to your account</p>
+          </div>
+
+          {/* Sign In Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Social Sign In Buttons */}
+          <div className="space-y-3">
             <button
-              onClick={() => setShowSignUp(true)}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:from-purple-700 hover:to-blue-700 transition-colors shadow-lg"
+              type="button"
+              className="w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 flex items-center justify-center"
             >
-              Sign Up Now
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Sign in with Google
             </button>
-            <button className="border-2 border-purple-600 text-purple-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-purple-50 transition-colors">
-              Learn More
+
+            <button
+              type="button"
+              className="w-full bg-black text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 flex items-center justify-center"
+            >
+              <Apple className="w-5 h-5 mr-2" />
+              Sign in with Apple
             </button>
           </div>
-        </div>
-      </div>
+                   {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">OR</span>
+            </div>
+          </div>
+            {/* Email Input */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                Email address <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+            </div>
 
-      {/* Quick Stats */}
-      <div className="bg-white py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8 text-center">
+            {/* Password Input */}
             <div>
-              <div className="text-4xl font-bold text-purple-600 mb-2">10,000+</div>
-              <div className="text-gray-600">Active Internships</div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                Password <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="Enter your password"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  )}
+                </button>
+              </div>
             </div>
-            <div>
-              <div className="text-4xl font-bold text-blue-600 mb-2">500+</div>
-              <div className="text-gray-600">Partner Companies</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-green-600 mb-2">85%</div>
-              <div className="text-gray-600">Success Rate</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-orange-600 mb-2">24/7</div>
-              <div className="text-gray-600">Support Available</div>
-            </div>
+
+            {/* Sign In Button */}
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 mt-6"
+            >
+              Log In
+            </button>
+          </form>
+
+          {/* Footer Links */}
+          <div className="flex justify-center space-x-4 mt-6 text-sm">
+            <Link to="/registration" className="text-blue-600 hover:text-blue-800 font-medium">
+              Create an account
+            </Link>
+            <span className="text-gray-300">|</span>
+            <a href="#" className="text-blue-600 hover:text-blue-800 font-medium">
+              Forgot password?
+            </a>
           </div>
         </div>
       </div>
