@@ -3,6 +3,7 @@ import { User, Mail, Lock, Phone, MapPin, Calendar, Briefcase, Upload, FileText,
 import { auth,db } from '../src/firebase';
 import { collection, addDoc,setDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { markProfileComplete } from '../auth/AuthFunctions';
+import { useNavigate } from 'react-router-dom';
 
 export default function SignUpPage() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -10,6 +11,8 @@ export default function SignUpPage() {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const navigate = useNavigate();
   
   // Form data
   const [formData, setFormData] = useState({
@@ -239,6 +242,7 @@ export default function SignUpPage() {
     await markProfileComplete(auth.currentUser.uid, userData);
 
     alert("Account created successfully! Welcome to PM Internships Hub.");
+    navigate('/dashboard');
 
     setIsModalOpen(false);
     setCurrentStep(0);
