@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { User, Mail, Lock, Phone, MapPin, Calendar, Briefcase, Upload, FileText, CheckCircle, X, ChevronRight, ChevronLeft, Check, GraduationCap, Sparkles, Plus, Trash2, Clock, Building, Home, Laptop } from 'lucide-react';
+import { auth,db } from '../src/firebase';
+import { collection, addDoc,setDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { markProfileComplete } from '../auth/AuthFunctions';
 
 export default function SignUpPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Form data
   const [formData, setFormData] = useState({
@@ -14,6 +18,7 @@ export default function SignUpPage() {
     phone: '',
     location: '',
     university: '',
+    course: '',
     graduationYear: '',
     experience: '',
     linkedIn: '',
@@ -91,7 +96,8 @@ export default function SignUpPage() {
       setUploadedFile({
         name: file.name,
         size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
-        type: file.type || 'document'
+        type: file.type || 'document',
+        file: file // Store the actual file object for later upload if needed
       });
     } else {
       alert('Please upload a PDF or Word document');
@@ -182,7 +188,7 @@ export default function SignUpPage() {
       case 1: // Resume Upload
         return uploadedFile !== null;
       case 2: // Education Details
-        return formData.university && formData.graduationYear && formData.experience;
+        return formData.university && formData.course && formData.graduationYear && formData.experience;
       case 3: // Internship Preferences - NOW REQUIRED
         return formData.skills.length > 0 && 
                formData.internshipDuration && 
@@ -196,7 +202,74 @@ export default function SignUpPage() {
     }
   };
 
-  const handleNext = () => {
+  // Function to save data to Firebase
+  const saveToFirestore = async () => {
+  setIsSubmitting(true);
+  try {
+    const userData = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      fullName: `${formData.firstName} ${formData.lastName}`,
+      email: auth.currentUser.email,
+      phone: formData.phone,
+      location: formData.location,
+      university: formData.university,
+      course: formData.course,
+      graduationYear: parseInt(formData.graduationYear),
+      experience: formData.experience,
+      resume: uploadedFile
+        ? {
+            name: uploadedFile.name,
+            size: uploadedFile.size,
+            type: uploadedFile.type,
+          }
+        : null,
+      skills: formData.skills,
+      internshipDuration: formData.internshipDuration,
+      preferredCities: formData.preferredCities,
+      workPreference: formData.workPreference,
+      availability: formData.availability,
+      linkedIn: formData.linkedIn || null,
+      portfolio: formData.portfolio || null,
+      accountType: "student",
+      registrationDate: serverTimestamp(),
+      lastUpdated: serverTimestamp(),
+      isActive: true,
+    };
+    await markProfileComplete(auth.currentUser.uid, userData);
+
+    alert("Account created successfully! Welcome to PM Internships Hub.");
+
+    setIsModalOpen(false);
+    setCurrentStep(0);
+    setFormData({
+      firstName: "",
+      lastName: "",
+      phone: "",
+      location: "",
+      university: "",
+      course: "",
+      graduationYear: "",
+      experience: "",
+      linkedIn: "",
+      portfolio: "",
+      skills: [],
+      internshipDuration: "",
+      preferredCities: [],
+      workPreference: "",
+      availability: "",
+    });
+    setUploadedFile(null);
+  } catch (error) {
+    console.error("Error saving user data: ", error);
+    alert("There was an error creating your account. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+
+  const handleNext = async () => {
     const currentStepData = steps[currentStep];
     
     // Validation based on step - only skip validation for step 4 (Additional Information)
@@ -212,10 +285,8 @@ export default function SignUpPage() {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Final submission
-      console.log('Sign up completed:', formData);
-      setIsModalOpen(false);
-      alert('Account created successfully! Welcome to PM Internships Hub.');
+      // Final submission - save to Firebase
+      await saveToFirestore();
     }
   };
 
@@ -926,9 +997,17 @@ export default function SignUpPage() {
 
               <button
                 onClick={handleNext}
-                className="flex items-center bg-gradient-to-r from-blue-600 to-cyan-700 text-white px-8 py-3 rounded-xl font-bold hover:from-blue-700 hover:to-cyan-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
+                disabled={isSubmitting}
+                className={`flex items-center bg-gradient-to-r from-blue-600 to-cyan-700 text-white px-8 py-3 rounded-xl font-bold hover:from-blue-700 hover:to-cyan-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 ${
+                  isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               >
-                {currentStep === steps.length - 1 ? (
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Creating Account...
+                  </>
+                ) : currentStep === steps.length - 1 ? (
                   <>
                     <Check className="w-5 h-5 mr-2" />
                     Create Account
