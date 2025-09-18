@@ -4,6 +4,11 @@ import { auth,db } from '../src/firebase';
 import { collection, addDoc,setDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { markProfileComplete } from '../auth/AuthFunctions';
 import { useNavigate } from 'react-router-dom';
+import { ChevronDown } from 'lucide-react';
+
+
+
+
 
 export default function SignUpPage() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -309,6 +314,202 @@ export default function SignUpPage() {
   const Icon = currentStepData?.icon;
   const completedSteps = steps.filter((_, index) => isStepCompleted(index)).length;
 
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+const [searchTerm, setSearchTerm] = useState('');
+
+const indianColleges = [
+  // --- IITs ---
+  "Indian Institute of Technology (IIT) Delhi",
+  "Indian Institute of Technology (IIT) Bombay",
+  "Indian Institute of Technology (IIT) Madras",
+  "Indian Institute of Technology (IIT) Kanpur",
+  "Indian Institute of Technology (IIT) Kharagpur",
+  "Indian Institute of Technology (IIT) Roorkee",
+  "Indian Institute of Technology (IIT) Guwahati",
+  "Indian Institute of Technology (IIT) Bhubaneswar",
+  "Indian Institute of Technology (IIT) Gandhinagar",
+  "Indian Institute of Technology (IIT) Hyderabad",
+  "Indian Institute of Technology (IIT) Indore",
+  "Indian Institute of Technology (IIT) Jodhpur",
+  "Indian Institute of Technology (IIT) Mandi",
+  "Indian Institute of Technology (IIT) Patna",
+  "Indian Institute of Technology (IIT) Ropar",
+  "Indian Institute of Technology (IIT) Varanasi (BHU)",
+  "Indian Institute of Technology (IIT) Palakkad",
+  "Indian Institute of Technology (IIT) Tirupati",
+  "Indian Institute of Technology (IIT) Bhilai",
+  "Indian Institute of Technology (IIT) Goa",
+  "Indian Institute of Technology (IIT) Jammu",
+  "Indian Institute of Technology (IIT) Dharwad",
+
+  // --- NITs ---
+  "National Institute of Technology (NIT) Trichy",
+  "National Institute of Technology (NIT) Warangal",
+  "National Institute of Technology (NIT) Surathkal",
+  "National Institute of Technology (NIT) Calicut",
+  "National Institute of Technology (NIT) Rourkela",
+  "National Institute of Technology (NIT) Kurukshetra",
+  "National Institute of Technology (NIT) Durgapur",
+  "National Institute of Technology (NIT) Silchar",
+  "National Institute of Technology (NIT) Jamshedpur",
+  "National Institute of Technology (NIT) Jaipur",
+  "National Institute of Technology (NIT) Allahabad",
+  "National Institute of Technology (NIT) Bhopal",
+  "National Institute of Technology (NIT) Agartala",
+  "National Institute of Technology (NIT) Arunachal Pradesh",
+  "National Institute of Technology (NIT) Delhi",
+  "National Institute of Technology (NIT) Goa",
+  "National Institute of Technology (NIT) Hamirpur",
+  "National Institute of Technology (NIT) Meghalaya",
+  "National Institute of Technology (NIT) Manipur",
+  "National Institute of Technology (NIT) Mizoram",
+  "National Institute of Technology (NIT) Nagaland",
+  "National Institute of Technology (NIT) Puducherry",
+  "National Institute of Technology (NIT) Sikkim",
+  "National Institute of Technology (NIT) Srinagar",
+  "National Institute of Technology (NIT) Uttarakhand",
+
+  // --- IIITs ---
+  "Indian Institute of Information Technology (IIIT) Allahabad",
+  "Indian Institute of Information Technology (IIIT) Gwalior",
+  "Indian Institute of Information Technology (IIIT) Jabalpur",
+  "Indian Institute of Information Technology (IIIT) Kancheepuram",
+  "Indian Institute of Information Technology (IIIT) Kurnool",
+  "Indian Institute of Information Technology (IIIT) Sri City",
+  "Indian Institute of Information Technology (IIIT) Vadodara",
+  "Indian Institute of Information Technology (IIIT) Guwahati",
+  "Indian Institute of Information Technology (IIIT) Una",
+  "Indian Institute of Information Technology (IIIT) Kota",
+  "Indian Institute of Information Technology (IIIT) Lucknow",
+  "Indian Institute of Information Technology (IIIT) Ranchi",
+  "Indian Institute of Information Technology (IIIT) Nagpur",
+  "Indian Institute of Information Technology (IIIT) Pune",
+  "Indian Institute of Information Technology (IIIT) Bhagalpur",
+  "Indian Institute of Information Technology (IIIT) Surat",
+  "Indian Institute of Information Technology (IIIT) Bhopal",
+  "Indian Institute of Information Technology (IIIT) Dharwad",
+  "Indian Institute of Information Technology (IIIT) Raichur",
+  "Indian Institute of Information Technology (IIIT) Kottayam",
+
+  // --- Private / Deemed Universities ---
+  "Birla Institute of Technology and Science (BITS) Pilani",
+  "BITS Hyderabad",
+  "BITS Goa",
+  "Vellore Institute of Technology (VIT) Vellore",
+  "VIT Chennai",
+  "VIT Bhopal",
+  "VIT Amaravati",
+  "SRM Institute of Science and Technology Chennai",
+  "SRM NCR Campus",
+  "SRM Kattankulathur",
+  "Amrita Vishwa Vidyapeetham Coimbatore",
+  "Amrita Vishwa Vidyapeetham Bangalore",
+  "Amrita Vishwa Vidyapeetham Amritapuri",
+  "Amity University Noida",
+  "Amity University Jaipur",
+  "Amity University Mumbai",
+  "Amity University Lucknow",
+  "Lovely Professional University (LPU)",
+  "Manipal Academy of Higher Education",
+  "Shiv Nadar University",
+  "Ashoka University",
+  "O.P. Jindal Global University",
+  "Christ University Bangalore",
+  "Symbiosis International University Pune",
+  "Graphic Era University Dehradun",
+  "Chandigarh University",
+  "Shoolini University",
+  "Uttaranchal University Dehradun",
+
+
+  // --- State Engineering Colleges / Universities ---
+  "College of Engineering Pune (COEP)",
+  "Delhi Technological University (DTU)",
+  "Netaji Subhas University of Technology (NSUT) Delhi",
+  "Jamia Millia Islamia (Faculty of Engineering)",
+  "Anna University Chennai",
+  "Osmania University College of Engineering Hyderabad",
+  "Jadavpur University Kolkata",
+  "Aligarh Muslim University (Faculty of Engineering)",
+  "Banaras Hindu University (Institute of Technology)",
+  "Jawaharlal Nehru Technological University (JNTU) Hyderabad",
+  "JNTU Anantapur",
+  "JNTU Kakinada",
+  "Mumbai University (Engineering Colleges)",
+  "Pune University (Engineering Colleges)",
+  "Bangalore University (UVCE)",
+  "Hyderabad University (Engineering)",
+  "Visvesvaraya Technological University (VTU) Belagavi",
+  "Rajasthan Technical University Kota",
+  "Punjab Engineering College (PEC) Chandigarh",
+  "Thapar Institute of Engineering and Technology Patiala",
+  "Guru Nanak Dev University (GNDU) Amritsar",
+  "Kurukshetra University (Engineering)",
+  "Maharaja Sayajirao University of Baroda (MSU)",
+  "Birla Institute of Technology (BIT) Mesra Ranchi",
+  "SASTRA University Thanjavur",
+  "Kalinga Institute of Industrial Technology (KIIT) Bhubaneswar",
+  "Siksha ‘O’ Anusandhan (SOA) Bhubaneswar",
+  "SRM University Andhra Pradesh",
+  "Saveetha Engineering College Chennai",
+  "Hindustan Institute of Technology and Science Chennai",
+  "Vel Tech Rangarajan Dr. Sagunthala R&D Institute Chennai",
+  "PSG College of Technology Coimbatore",
+  "Sri Sairam Engineering College Chennai",
+  "Sathyabama Institute of Science and Technology Chennai",
+  "BMS College of Engineering Bangalore",
+  "RV College of Engineering Bangalore",
+  "PES University Bangalore",
+  "Dayananda Sagar College of Engineering Bangalore",
+  "MS Ramaiah Institute of Technology Bangalore",
+  "CMR Institute of Technology Bangalore",
+  "Acharya Institute of Technology Bangalore",
+  "SJCE Mysore",
+  "MIT Manipal",
+  "KLE Technological University Hubli",
+  "Nirma University Ahmedabad",
+  "Pandit Deendayal Energy University (PDEU) Gandhinagar",
+  "Dhirubhai Ambani Institute of Information and Communication Technology (DAIICT) Gandhinagar",
+  "Charotar University of Science and Technology (CHARUSAT) Anand",
+  "Parul University Vadodara",
+  "Indus University Ahmedabad",
+
+  // --- Medical/Science/Management (already in your list, kept for completeness) ---
+  "Indian Institute of Science (IISc) Bangalore",
+  "All India Institute of Medical Sciences (AIIMS) Delhi",
+  "Indian Institute of Management (IIM) Ahmedabad",
+  "Indian Institute of Management (IIM) Bangalore",
+  "Indian Institute of Management (IIM) Calcutta",
+  "Indian Statistical Institute (ISI)",
+  "Tata Institute of Fundamental Research (TIFR)",
+  "Indian Institute of Foreign Trade (IIFT)",
+  "Faculty of Management Studies (FMS) Delhi",
+  "Xavier Labour Relations Institute (XLRI)",
+  "Indian School of Business (ISB) Hyderabad"
+];
+
+
+// Update your existing handleInputChange function
+const handleCollegeChange = (e) => {
+  const { name, value } = e.target;
+  setFormData(prev => ({ ...prev, [name]: value }));
+  
+  if (name === 'university') {
+    setSearchTerm(value);
+    setIsDropdownOpen(true);
+  }
+};
+
+const handleSelectCollege = (college) => {
+  setFormData(prev => ({ ...prev, university: college }));
+  setSearchTerm(college);
+  setIsDropdownOpen(false);
+};
+
+const filteredColleges = indianColleges.filter(college =>
+  college.toLowerCase().includes(formData.university.toLowerCase())
+);
+
   return (
     <div className="h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 flex relative overflow-hidden">
       {/* Left Side - Progress Tree */}
@@ -611,20 +812,56 @@ export default function SignUpPage() {
               {/* Education Details Step */}
               {currentStep === 2 && (
                 <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      <GraduationCap className="w-4 h-4 inline mr-2" />
-                      University/College
-                    </label>
-                    <input
-                      type="text"
-                      name="university"
-                      value={formData.university}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border-2 border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-blue-800 font-semibold"
-                      required
-                    />
-                  </div>
+                 <div className="relative">
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    <GraduationCap className="w-4 h-4 inline mr-2" />
+    University/College
+  </label>
+  
+  <div className="relative">
+    <input
+      type="text"
+      name="university"
+      value={formData.university}
+      onChange={handleCollegeChange}
+      onFocus={() => setIsDropdownOpen(true)}
+      placeholder="Search for Indian colleges..."
+      className="w-full px-3 py-2 pr-10 border-2 border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-blue-800 font-semibold"
+      required
+    />
+    <ChevronDown 
+      className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-blue-600 cursor-pointer"
+      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+    />
+  </div>
+
+  {isDropdownOpen && (
+    <div className="absolute z-10 w-full mt-1 bg-white border-2 border-blue-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+      {filteredColleges.length > 0 ? (
+        filteredColleges.map((college, index) => (
+          <div
+            key={index}
+            className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-blue-800 border-b border-blue-100 last:border-b-0"
+            onClick={() => handleSelectCollege(college)}
+          >
+            {college}
+          </div>
+        ))
+      ) : (
+        <div className="px-3 py-2 text-gray-500 italic">
+          No matching colleges found
+        </div>
+      )}
+    </div>
+  )}
+
+  {isDropdownOpen && (
+    <div 
+      className="fixed inset-0 z-0"
+      onClick={() => setIsDropdownOpen(false)}
+    />
+  )}
+</div>
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
