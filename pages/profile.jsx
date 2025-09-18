@@ -239,7 +239,39 @@ const SkillsSection = ({ formData, isEditing, newSkill, setNewSkill, addSkill, r
   </div>
 );
 
-
+const ExperienceSection = ({ formData, isEditing }) => (
+  <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="flex items-center justify-between mb-6">
+      <h2 className="text-xl font-medium text-gray-900">Experience</h2>
+      {isEditing && (
+        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+          <Plus className="w-4 h-4 mr-2" />
+          Add Experience
+        </button>
+      )}
+    </div>
+    
+    <div className="space-y-6">
+      {formData.experience.map((exp, index) => (
+        <div key={index} className="border-l-4 border-blue-600 pl-6 pb-6">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h3 className="font-medium text-gray-900">{exp.title}</h3>
+              <p className="text-blue-600 mb-2">{exp.company}</p>
+              <p className="text-sm text-gray-600 mb-2">{exp.duration}</p>
+              <p className="text-gray-700">{exp.description}</p>
+            </div>
+            {isEditing && (
+              <button className="text-red-500 hover:text-red-700 ml-4">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 const EducationSection = ({ formData, isEditing, addEducation, updateEducation, removeEducation }) => (
   <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -430,7 +462,7 @@ const NavigationTabs = ({ activeSection, setActiveSection }) => {
   const tabs = [
     { id: 'personal', name: 'Personal Info', icon: User },
     { id: 'skills', name: 'Skills', icon: Star },
-   
+    { id: 'experience', name: 'Experience', icon: Briefcase },
     { id: 'education', name: 'Education', icon: GraduationCap },
     { id: 'preferences', name: 'Preferences', icon: Target }
   ];
@@ -473,6 +505,14 @@ const ProfilePage = ({ user }) => {
     githubUrl: user?.githubUrl || '',
     portfolioUrl: user?.portfolioUrl || '',
     skills: user?.skills || ['React', 'JavaScript', 'Python', 'Node.js', 'MongoDB'],
+    experience: user?.experience || [
+      {
+        title: 'Software Development Intern',
+        company: 'TechCorp',
+        duration: 'Jun 2024 - Aug 2024',
+        description: 'Developed web applications using React and Node.js'
+      }
+    ],
     education: user?.education || [],
     preferences: user?.preferences || {
       jobType: 'Full-time',
@@ -512,6 +552,7 @@ const ProfilePage = ({ user }) => {
       githubUrl: user?.githubUrl || '',
       portfolioUrl: user?.portfolioUrl || '',
       skills: user?.skills || ['React', 'JavaScript', 'Python', 'Node.js', 'MongoDB'],
+      experience: user?.experience || [],
       education: user?.education || [],
       preferences: user?.preferences || {
         jobType: 'Full-time',
@@ -593,6 +634,11 @@ const ProfilePage = ({ user }) => {
           addSkill={addSkill}
           removeSkill={removeSkill}
         />;
+      case 'experience':
+        return <ExperienceSection 
+          formData={formData} 
+          isEditing={isEditing} 
+        />;
       case 'education':
         return <EducationSection 
           formData={formData} 
@@ -617,35 +663,7 @@ const ProfilePage = ({ user }) => {
     }
   };
 
-  const getCompletionTips = () => {
-    const tips = [];
-    
-    if (!formData.firstName || !formData.lastName) {
-      tips.push('Add your full name to make your profile more professional');
-    }
-    if (!formData.bio) {
-      tips.push('Add a professional bio to showcase your personality and goals');
-    }
-    if (!formData.linkedinUrl && !formData.githubUrl && !formData.portfolioUrl) {
-      tips.push('Include your LinkedIn, GitHub, or portfolio links');
-    }
-    if (formData.skills.length === 0) {
-      tips.push('Add relevant skills to highlight your expertise');
-    }
-    if (formData.experience.length === 0) {
-      tips.push('Add your work experience or projects');
-    }
-    if (formData.education.length === 0) {
-      tips.push('Include your educational background');
-    }
-    if (!formData.preferences.jobType || !formData.preferences.duration) {
-      tips.push('Specify your internship preferences for better matches');
-    }
-    
-    return tips.slice(0, 4); // Show max 4 tips
-  };
-
-   return (
+ return (
     <div className="max-w-6xl mx-auto">
       <ProfileHeader 
         formData={formData}
@@ -662,26 +680,22 @@ const ProfilePage = ({ user }) => {
       {renderActiveSection()}
       
       {/* Profile Completion Tips */}
-      {getCompletionTips().length > 0 && (
-        <div className="bg-blue-50 rounded-lg border border-blue-200 p-6 mt-8">
-          <div className="flex items-start space-x-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Award className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-medium text-blue-900 mb-2">
-                Complete your profile to get better matches! ({formData.profileCompleteness}% complete)
-              </h3>
-              <ul className="text-sm text-blue-700 space-y-1">
-                {getCompletionTips().map((tip, index) => (
-                  <li key={index}>• {tip}</li>
-                ))}
-              </ul>
-            </div>
+      <div className="bg-blue-50 rounded-lg border border-blue-200 p-6 mt-8">
+        <div className="flex items-start space-x-4">
+          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+            <Award className="w-6 h-6 text-blue-600" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-medium text-blue-900 mb-2">Complete your profile to get better matches!</h3>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>• Add a professional bio to showcase your personality</li>
+              <li>• Include your portfolio or GitHub links</li>
+              <li>• Specify your internship preferences for better recommendations</li>
+              <li>• Add relevant skills and experience</li>
+            </ul>
           </div>
         </div>
-      )}
-    
+      </div>
     </div>
   );
 };
