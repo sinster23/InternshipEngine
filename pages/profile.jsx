@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User, 
   Mail, 
@@ -21,64 +21,246 @@ import {
   FileText,
   Link,
   Star,
-  CheckCircle
+  CheckCircle,
+  Loader
 } from 'lucide-react';
 
-const ProfilePage = ({ user }) => {
+// Import Firebase functions - Replace with your actual Firebase imports
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { auth, db } from "../src/firebase"; 
+
+const ProfilePage = ({ userId }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [activeSection, setActiveSection] = useState('personal');
   const [newSkill, setNewSkill] = useState('');
+  const [newLocation, setNewLocation] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
+  
+  // Separate state for original data to handle cancellation
+  const [originalData, setOriginalData] = useState(null);
+  
   const [formData, setFormData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    location: user?.location || '',
-    bio: user?.bio || '',
-    dateOfBirth: user?.dateOfBirth || '',
-    linkedinUrl: user?.linkedinUrl || '',
-    githubUrl: user?.githubUrl || '',
-    portfolioUrl: user?.portfolioUrl || '',
-    skills: user?.skills || ['React', 'JavaScript', 'Python', 'Node.js', 'MongoDB'],
-    experience: user?.experience || [
-      {
-        title: 'Software Development Intern',
-        company: 'TechCorp',
-        duration: 'Jun 2024 - Aug 2024',
-        description: 'Developed web applications using React and Node.js'
-      }
-    ],
-    education: user?.education || [
-      {
-        degree: 'Bachelor of Technology',
-        institution: 'Indian Institute of Technology',
-        year: '2022 - 2026',
-        gpa: '8.5/10'
-      }
-    ],
-    preferences: user?.preferences || {
-      jobType: 'Full-time',
-      preferredLocations: ['Remote', 'Bangalore', 'Mumbai'],
-      expectedStipend: '₹40,000 - ₹60,000',
-      duration: '3-6 months'
-    }
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    location: '',
+    bio: '',
+    dateOfBirth: '',
+    linkedinUrl: '',
+    githubUrl: '',
+    portfolioUrl: '',
+    skills: [],
+    experience: [],
+    education: [],
+    preferences: {
+      jobType: '',
+      preferredLocations: [],
+      expectedStipend: '',
+      duration: ''
+    },
+    profileCompleteness: 0
   });
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  // Load profile data from Firebase on component mount
+  useEffect(() => {
+    loadProfileData();
+  }, [userId]);
+
+  const getCurrentUserId = () => {
+    return userId || auth.currentUser?.uid;
   };
 
-  const handleSave = () => {
-    // Here you would typically save to Firebase/backend
-    console.log('Saving profile data:', formData);
+  const loadProfileData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const currentUserId = getCurrentUserId();
+      
+      if (!currentUserId) {
+        throw new Error('No authenticated user found');
+      }
+
+      // Fetch user profile from Firestore
+      const docRef = doc(db, 'users', currentUserId);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        console.log('User data:', userData);
+        const completeData = {
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || '',
+          email: userData.email || auth.currentUser?.email || '',
+          phone: userData.phone || '',
+          location: userData.location || '',
+          bio: userData.bio || '',
+          dateOfBirth: userData.dateOfBirth || '',
+          linkedinUrl: userData.linkedinUrl || '',
+          githubUrl: userData.githubUrl || '',
+          portfolioUrl: userData.portfolioUrl || '',
+          skills: userData.skills || [],
+          experience: userData.experience || [],
+          education: userData.education || [],
+          preferences: {
+            jobType: userData.workPreference || '',
+            preferredLocations: userData.preferredCities || [],
+            expectedStipend: userData.expectedStipend || '',
+            duration: userData.internshipDuration || ''
+          },
+          profileCompleteness: userData.profileCompleteness || 0
+        };
+        
+        setFormData(completeData);
+        setOriginalData(completeData);
+      } else {
+        // Create default profile structure for new users
+        const defaultData = {
+          firstName: '',
+          lastName: '',
+          email: auth.currentUser?.email || '',
+          phone: '',
+          location: '',
+          bio: '',
+          dateOfBirth: '',
+          linkedinUrl: '',
+          githubUrl: '',
+          portfolioUrl: '',
+          skills: [],
+          experience: [],
+          education: [],
+          preferences: {
+            jobType: '',
+            preferredLocations: [],
+            expectedStipend: '',
+            duration: ''
+          },
+          profileCompleteness: 0,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        
+        await setDoc(docRef, defaultData);
+        setFormData(defaultData);
+        setOriginalData(defaultData);
+      }
+    } catch (err) {
+      console.error('Error loading profile:', err);
+      setError('Failed to load profile data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateProfileCompleteness = (data) => {
+    const fields = [
+      data.firstName,
+      data.lastName,
+      data.email,
+      data.phone,
+      data.location,
+      data.bio,
+      data.dateOfBirth,
+      data.linkedinUrl || data.githubUrl || data.portfolioUrl,
+      data.skills.length > 0,
+      data.experience.length > 0,
+      data.education.length > 0,
+      data.preferences.jobType,
+      data.preferences.preferredLocations.length > 0,
+      data.preferences.expectedStipend,
+      data.preferences.duration
+    ];
+    
+    const filledFields = fields.filter(field => field && field !== '').length;
+    return Math.round((filledFields / fields.length) * 100);
+  };
+
+  // Fixed input change handler to prevent focus loss
+  const handleInputChange = (field, value) => {
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value };
+      return {
+        ...newData,
+        profileCompleteness: calculateProfileCompleteness(newData)
+      };
+    });
+  };
+
+  const handleNestedInputChange = (parentField, childField, value) => {
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [parentField]: {
+          ...prev[parentField],
+          [childField]: value
+        }
+      };
+      return {
+        ...newData,
+        profileCompleteness: calculateProfileCompleteness(newData)
+      };
+    });
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      setError(null);
+      setSuccessMessage('');
+      
+      const currentUserId = getCurrentUserId();
+      
+      if (!currentUserId) {
+        throw new Error('No authenticated user found');
+      }
+
+      // Add timestamp and recalculate completeness
+      const dataToSave = {
+        ...formData,
+        updatedAt: new Date().toISOString(),
+        profileCompleteness: calculateProfileCompleteness(formData)
+      };
+
+      // Save to Firebase
+      const docRef = doc(db, 'users', currentUserId);
+      await updateDoc(docRef, dataToSave);
+      
+      // Update original data to new saved state
+      setOriginalData(dataToSave);
+      setIsEditing(false);
+      setSuccessMessage('Profile updated successfully!');
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(''), 3000);
+      
+    } catch (err) {
+      console.error('Error saving profile:', err);
+      setError('Failed to save profile. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    // Restore original data
+    if (originalData) {
+      setFormData(originalData);
+    }
     setIsEditing(false);
+    setError(null);
   };
 
   const addSkill = () => {
-    if (newSkill && !formData.skills.includes(newSkill)) {
+    if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
       setFormData(prev => ({
         ...prev,
-        skills: [...prev.skills, newSkill]
+        skills: [...prev.skills, newSkill.trim()]
       }));
       setNewSkill('');
     }
@@ -91,111 +273,218 @@ const ProfilePage = ({ user }) => {
     }));
   };
 
-  const ProfileHeader = () => {
-    const getInitials = (name) => {
-      return name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
+  const addExperience = () => {
+    const newExp = {
+      id: Date.now().toString(),
+      title: '',
+      company: '',
+      duration: '',
+      description: ''
     };
+    
+    setFormData(prev => ({
+      ...prev,
+      experience: [...prev.experience, newExp]
+    }));
+  };
 
+  const updateExperience = (id, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      experience: prev.experience.map(exp =>
+        exp.id === id ? { ...exp, [field]: value } : exp
+      )
+    }));
+  };
+
+  const removeExperience = (id) => {
+    setFormData(prev => ({
+      ...prev,
+      experience: prev.experience.filter(exp => exp.id !== id)
+    }));
+  };
+
+  const addEducation = () => {
+    const newEdu = {
+      id: Date.now().toString(),
+      degree: '',
+      institution: '',
+      year: '',
+      gpa: ''
+    };
+    
+    setFormData(prev => ({
+      ...prev,
+      education: [...prev.education, newEdu]
+    }));
+  };
+
+  const updateEducation = (id, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      education: prev.education.map(edu =>
+        edu.id === id ? { ...edu, [field]: value } : edu
+      )
+    }));
+  };
+
+  const removeEducation = (id) => {
+    setFormData(prev => ({
+      ...prev,
+      education: prev.education.filter(edu => edu.id !== id)
+    }));
+  };
+
+  const addPreferredLocation = (location) => {
+    if (location.trim() && !formData.preferences.preferredLocations.includes(location.trim())) {
+      handleNestedInputChange('preferences', 'preferredLocations', [
+        ...formData.preferences.preferredLocations,
+        location.trim()
+      ]);
+    }
+  };
+
+  const removePreferredLocation = (location) => {
+    handleNestedInputChange('preferences', 'preferredLocations',
+      formData.preferences.preferredLocations.filter(loc => loc !== location)
+    );
+  };
+
+  if (loading) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-8 mb-8">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-6">
-            <div className="relative">
-              <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-2xl">
-                {getInitials(`${formData.firstName} ${formData.lastName}`)}
-              </div>
-              <button className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors">
-                <Camera className="w-4 h-4 text-white" />
-              </button>
-            </div>
-            
-            <div className="flex-1">
-              <div className="flex items-center space-x-3 mb-2">
-                <h1 className="text-3xl font-light text-gray-900">
-                  {formData.firstName} {formData.lastName}
-                </h1>
-                <div className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full flex items-center">
-                  <CheckCircle className="w-4 h-4 mr-1" />
-                  Verified
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-4 text-gray-600 mb-4">
-                <div className="flex items-center">
-                  <Mail className="w-4 h-4 mr-1" />
-                  <span className="text-sm">{formData.email}</span>
-                </div>
-                {formData.location && (
-                  <div className="flex items-center">
-                    <MapPin className="w-4 h-4 mr-1" />
-                    <span className="text-sm">{formData.location}</span>
-                  </div>
-                )}
-              </div>
-              
-              {formData.bio && (
-                <p className="text-gray-600 mb-4 max-w-2xl">{formData.bio}</p>
-              )}
-              
-              <div className="flex items-center space-x-4">
-                {formData.linkedinUrl && (
-                  <a href={formData.linkedinUrl} className="text-blue-600 hover:text-blue-700">
-                    <ExternalLink className="w-5 h-5" />
-                  </a>
-                )}
-                {formData.githubUrl && (
-                  <a href={formData.githubUrl} className="text-gray-700 hover:text-gray-900">
-                    <ExternalLink className="w-5 h-5" />
-                  </a>
-                )}
-                {formData.portfolioUrl && (
-                  <a href={formData.portfolioUrl} className="text-blue-600 hover:text-blue-700">
-                    <Globe className="w-5 h-5" />
-                  </a>
-                )}
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-3">
-            <div className="text-right">
-              <div className="text-2xl font-light text-gray-900">87%</div>
-              <div className="text-sm text-gray-600">Profile Complete</div>
-              <div className="w-16 bg-gray-200 rounded-full h-2 mt-1">
-                <div className="bg-blue-600 h-2 rounded-full" style={{width: '87%'}}></div>
-              </div>
-            </div>
-            {isEditing ? (
-              <div className="flex space-x-2">
-                <button
-                  onClick={handleSave}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Save
-                </button>
-                <button
-                  onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors flex items-center"
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center"
-              >
-                <Edit3 className="w-4 h-4 mr-2" />
-                Edit Profile
-              </button>
-            )}
-          </div>
+      <div className="max-w-6xl mx-auto flex items-center justify-center py-12">
+        <div className="text-center">
+          <Loader className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading your profile...</p>
         </div>
       </div>
     );
+  }
+
+  const getInitials = (name) => {
+    return name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
   };
+
+  const ProfileHeader = () => (
+    <div className="bg-white rounded-lg border border-gray-200 p-8 mb-8">
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {error}
+        </div>
+      )}
+      
+      {successMessage && (
+        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700">
+          {successMessage}
+        </div>
+      )}
+      
+      <div className="flex items-start justify-between">
+        <div className="flex items-start space-x-6">
+          <div className="relative">
+            <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-2xl">
+              {getInitials(`${formData.firstName} ${formData.lastName}`)}
+            </div>
+            <button className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors">
+              <Camera className="w-4 h-4 text-white" />
+            </button>
+          </div>
+          
+          <div className="flex-1">
+            <div className="flex items-center space-x-3 mb-2">
+              <h1 className="text-3xl font-light text-gray-900">
+                {formData.firstName} {formData.lastName}
+              </h1>
+              <div className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full flex items-center">
+                <CheckCircle className="w-4 h-4 mr-1" />
+                Verified
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4 text-gray-600 mb-4">
+              <div className="flex items-center">
+                <Mail className="w-4 h-4 mr-1" />
+                <span className="text-sm">{formData.email}</span>
+              </div>
+              {formData.location && (
+                <div className="flex items-center">
+                  <MapPin className="w-4 h-4 mr-1" />
+                  <span className="text-sm">{formData.location}</span>
+                </div>
+              )}
+            </div>
+            
+            {formData.bio && (
+              <p className="text-gray-600 mb-4 max-w-2xl">{formData.bio}</p>
+            )}
+            
+            <div className="flex items-center space-x-4">
+              {formData.linkedinUrl && (
+                <a href={formData.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700">
+                  <ExternalLink className="w-5 h-5" />
+                </a>
+              )}
+              {formData.githubUrl && (
+                <a href={formData.githubUrl} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-gray-900">
+                  <ExternalLink className="w-5 h-5" />
+                </a>
+              )}
+              {formData.portfolioUrl && (
+                <a href={formData.portfolioUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700">
+                  <Globe className="w-5 h-5" />
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-3">
+          <div className="text-right">
+            <div className="text-2xl font-light text-gray-900">{formData.profileCompleteness}%</div>
+            <div className="text-sm text-gray-600">Profile Complete</div>
+            <div className="w-16 bg-gray-200 rounded-full h-2 mt-1">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                style={{width: `${formData.profileCompleteness}%`}}
+              ></div>
+            </div>
+          </div>
+          {isEditing ? (
+            <div className="flex space-x-2">
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50"
+              >
+                {saving ? (
+                  <Loader className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
+                {saving ? 'Saving...' : 'Save'}
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={saving}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors flex items-center disabled:opacity-50"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center"
+            >
+              <Edit3 className="w-4 h-4 mr-2" />
+              Edit Profile
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   const PersonalInfoSection = () => (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -210,9 +499,10 @@ const ProfilePage = ({ user }) => {
               value={formData.firstName}
               onChange={(e) => handleInputChange('firstName', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter your first name"
             />
           ) : (
-            <p className="text-gray-900">{formData.firstName}</p>
+            <p className="text-gray-900">{formData.firstName || 'Not provided'}</p>
           )}
         </div>
         
@@ -224,9 +514,10 @@ const ProfilePage = ({ user }) => {
               value={formData.lastName}
               onChange={(e) => handleInputChange('lastName', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter your last name"
             />
           ) : (
-            <p className="text-gray-900">{formData.lastName}</p>
+            <p className="text-gray-900">{formData.lastName || 'Not provided'}</p>
           )}
         </div>
         
@@ -385,6 +676,9 @@ const ProfilePage = ({ user }) => {
             )}
           </div>
         ))}
+        {formData.skills.length === 0 && (
+          <p className="text-gray-500">No skills added yet. Click "Edit Profile" to add some skills.</p>
+        )}
       </div>
     </div>
   );
@@ -394,7 +688,10 @@ const ProfilePage = ({ user }) => {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-medium text-gray-900">Experience</h2>
         {isEditing && (
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+          <button 
+            onClick={addExperience}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Add Experience
           </button>
@@ -402,23 +699,65 @@ const ProfilePage = ({ user }) => {
       </div>
       
       <div className="space-y-6">
-        {formData.experience.map((exp, index) => (
-          <div key={index} className="border-l-4 border-blue-600 pl-6 pb-6">
+        {formData.experience.map((exp) => (
+          <div key={exp.id} className="border-l-4 border-blue-600 pl-6 pb-6">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <h3 className="font-medium text-gray-900">{exp.title}</h3>
-                <p className="text-blue-600 mb-2">{exp.company}</p>
-                <p className="text-sm text-gray-600 mb-2">{exp.duration}</p>
-                <p className="text-gray-700">{exp.description}</p>
+                {isEditing ? (
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      value={exp.title}
+                      onChange={(e) => updateExperience(exp.id, 'title', e.target.value)}
+                      placeholder="Job Title"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-medium"
+                    />
+                    <input
+                      type="text"
+                      value={exp.company}
+                      onChange={(e) => updateExperience(exp.id, 'company', e.target.value)}
+                      placeholder="Company Name"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-blue-600"
+                    />
+                    <input
+                      type="text"
+                      value={exp.duration}
+                      onChange={(e) => updateExperience(exp.id, 'duration', e.target.value)}
+                      placeholder="Duration (e.g., Jun 2024 - Aug 2024)"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-gray-600"
+                    />
+                    <textarea
+                      value={exp.description}
+                      onChange={(e) => updateExperience(exp.id, 'description', e.target.value)}
+                      placeholder="Description of your role and achievements"
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <h3 className="font-medium text-gray-900">{exp.title}</h3>
+                    <p className="text-blue-600 mb-2">{exp.company}</p>
+                    <p className="text-sm text-gray-600 mb-2">{exp.duration}</p>
+                    <p className="text-gray-700">{exp.description}</p>
+                  </>
+                )}
               </div>
               {isEditing && (
-                <button className="text-red-500 hover:text-red-700 ml-4">
+                <button 
+                  onClick={() => removeExperience(exp.id)}
+                  className="text-red-500 hover:text-red-700 ml-4"
+                >
                   <Trash2 className="w-4 h-4" />
                 </button>
               )}
             </div>
           </div>
         ))}
+        
+        {formData.experience.length === 0 && (
+          <p className="text-gray-500">No experience added yet. Click "Edit Profile" to add your work experience.</p>
+        )}
       </div>
     </div>
   );
@@ -428,7 +767,10 @@ const ProfilePage = ({ user }) => {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-medium text-gray-900">Education</h2>
         {isEditing && (
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+          <button 
+            onClick={addEducation}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Add Education
           </button>
@@ -436,99 +778,181 @@ const ProfilePage = ({ user }) => {
       </div>
       
       <div className="space-y-6">
-        {formData.education.map((edu, index) => (
-          <div key={index} className="border-l-4 border-green-500 pl-6 pb-6">
+        {formData.education.map((edu) => (
+          <div key={edu.id} className="border-l-4 border-green-500 pl-6 pb-6">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <h3 className="font-medium text-gray-900">{edu.degree}</h3>
-                <p className="text-green-600 mb-2">{edu.institution}</p>
-                <div className="flex items-center space-x-4 text-sm text-gray-600">
-                  <span>{edu.year}</span>
-                  {edu.gpa && <span>GPA: {edu.gpa}</span>}
-                </div>
+                {isEditing ? (
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      value={edu.degree}
+                      onChange={(e) => updateEducation(edu.id, 'degree', e.target.value)}
+                      placeholder="Degree/Course Name"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-medium"
+                    />
+                    <input
+                      type="text"
+                      value={edu.institution}
+                      onChange={(e) => updateEducation(edu.id, 'institution', e.target.value)}
+                      placeholder="Institution Name"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-green-600"
+                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        value={edu.year}
+                        onChange={(e) => updateEducation(edu.id, 'year', e.target.value)}
+                        placeholder="Year (e.g., 2022 - 2026)"
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-gray-600"
+                      />
+                      <input
+                        type="text"
+                        value={edu.gpa}
+                        onChange={(e) => updateEducation(edu.id, 'gpa', e.target.value)}
+                        placeholder="GPA/Percentage (optional)"
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-gray-600"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <h3 className="font-medium text-gray-900">{edu.degree}</h3>
+                    <p className="text-green-600 mb-2">{edu.institution}</p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                      <span>{edu.year}</span>
+                      {edu.gpa && <span>GPA: {edu.gpa}</span>}
+                    </div>
+                  </>
+                )}
               </div>
               {isEditing && (
-                <button className="text-red-500 hover:text-red-700 ml-4">
+                <button 
+                  onClick={() => removeEducation(edu.id)}
+                  className="text-red-500 hover:text-red-700 ml-4"
+                >
                   <Trash2 className="w-4 h-4" />
                 </button>
               )}
             </div>
           </div>
         ))}
+        
+        {formData.education.length === 0 && (
+          <p className="text-gray-500">No education added yet. Click "Edit Profile" to add your educational background.</p>
+        )}
       </div>
     </div>
   );
 
-  const PreferencesSection = () => (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <h2 className="text-xl font-medium text-gray-900 mb-6">Internship Preferences</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Job Type</label>
-          {isEditing ? (
-            <select
-              value={formData.preferences.jobType}
-              onChange={(e) => handleInputChange('preferences', {...formData.preferences, jobType: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select job type</option>
-              <option value="Full-time">Full-time</option>
-              <option value="Part-time">Part-time</option>
-              <option value="Remote">Remote</option>
-              <option value="Hybrid">Hybrid</option>
-            </select>
-          ) : (
-            <p className="text-gray-900">{formData.preferences.jobType || 'Not specified'}</p>
-          )}
-        </div>
+  const PreferencesSection = () => {
+    const addLocation = () => {
+      if (newLocation.trim()) {
+        addPreferredLocation(newLocation);
+        setNewLocation('');
+      }
+    };
+
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <h2 className="text-xl font-medium text-gray-900 mb-6">Internship Preferences</h2>
         
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
-          {isEditing ? (
-            <select
-              value={formData.preferences.duration}
-              onChange={(e) => handleInputChange('preferences', {...formData.preferences, duration: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select duration</option>
-              <option value="1-3 months">1-3 months</option>
-              <option value="3-6 months">3-6 months</option>
-              <option value="6+ months">6+ months</option>
-            </select>
-          ) : (
-            <p className="text-gray-900">{formData.preferences.duration || 'Not specified'}</p>
-          )}
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Expected Stipend</label>
-          {isEditing ? (
-            <input
-              type="text"
-              value={formData.preferences.expectedStipend}
-              onChange={(e) => handleInputChange('preferences', {...formData.preferences, expectedStipend: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="₹40,000 - ₹60,000"
-            />
-          ) : (
-            <p className="text-gray-900">{formData.preferences.expectedStipend || 'Not specified'}</p>
-          )}
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Locations</label>
-          <div className="flex flex-wrap gap-2">
-            {formData.preferences.preferredLocations.map((location, index) => (
-              <span key={index} className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">
-                {location}
-              </span>
-            ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Job Type</label>
+            {isEditing ? (
+              <select
+                value={formData.preferences.jobType}
+                onChange={(e) => handleNestedInputChange('preferences', 'jobType', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select job type</option>
+                <option value="Full-time">Full-time</option>
+                <option value="Part-time">Part-time</option>
+                <option value="Remote">Remote</option>
+                <option value="Hybrid">Hybrid</option>
+              </select>
+            ) : (
+              <p className="text-gray-900">{formData.preferences.jobType || 'Not specified'}</p>
+            )}
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
+            {isEditing ? (
+              <select
+                value={formData.preferences.duration}
+                onChange={(e) => handleNestedInputChange('preferences', 'duration', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select duration</option>
+                <option value="1-3 months">1-3 months</option>
+                <option value="3-6 months">3-6 months</option>
+                <option value="6+ months">6+ months</option>
+              </select>
+            ) : (
+              <p className="text-gray-900">{formData.preferences.duration || 'Not specified'}</p>
+            )}
+          </div>
+          
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Expected Stipend</label>
+            {isEditing ? (
+              <input
+                type="text"
+                value={formData.preferences.expectedStipend}
+                onChange={(e) => handleNestedInputChange('preferences', 'expectedStipend', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="₹40,000 - ₹60,000"
+              />
+            ) : (
+              <p className="text-gray-900">{formData.preferences.expectedStipend || 'Not specified'}</p>
+            )}
+          </div>
+          
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Locations</label>
+            {isEditing && (
+              <div className="flex items-center space-x-2 mb-3">
+                <input
+                  type="text"
+                  value={newLocation}
+                  onChange={(e) => setNewLocation(e.target.value)}
+                  placeholder="Add a location"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onKeyPress={(e) => e.key === 'Enter' && addLocation()}
+                />
+                <button
+                  onClick={addLocation}
+                  className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            <div className="flex flex-wrap gap-2">
+              {formData.preferences.preferredLocations.map((location, index) => (
+                <div key={index} className="flex items-center px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">
+                  <span>{location}</span>
+                  {isEditing && (
+                    <button
+                      onClick={() => removePreferredLocation(location)}
+                      className="ml-2 text-gray-500 hover:text-gray-700"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              ))}
+              {formData.preferences.preferredLocations.length === 0 && (
+                <p className="text-gray-500">No preferred locations added yet.</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const NavigationTabs = () => {
     const tabs = [
@@ -578,6 +1002,34 @@ const ProfilePage = ({ user }) => {
     }
   };
 
+  const getCompletionTips = () => {
+    const tips = [];
+    
+    if (!formData.firstName || !formData.lastName) {
+      tips.push('Add your full name to make your profile more professional');
+    }
+    if (!formData.bio) {
+      tips.push('Add a professional bio to showcase your personality and goals');
+    }
+    if (!formData.linkedinUrl && !formData.githubUrl && !formData.portfolioUrl) {
+      tips.push('Include your LinkedIn, GitHub, or portfolio links');
+    }
+    if (formData.skills.length === 0) {
+      tips.push('Add relevant skills to highlight your expertise');
+    }
+    if (formData.experience.length === 0) {
+      tips.push('Add your work experience or projects');
+    }
+    if (formData.education.length === 0) {
+      tips.push('Include your educational background');
+    }
+    if (!formData.preferences.jobType || !formData.preferences.duration) {
+      tips.push('Specify your internship preferences for better matches');
+    }
+    
+    return tips.slice(0, 4); // Show max 4 tips
+  };
+
   return (
     <div className="max-w-6xl mx-auto">
       <ProfileHeader />
@@ -585,22 +1037,26 @@ const ProfilePage = ({ user }) => {
       {renderActiveSection()}
       
       {/* Profile Completion Tips */}
-      <div className="bg-blue-50 rounded-lg border border-blue-200 p-6 mt-8">
-        <div className="flex items-start space-x-4">
-          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-            <Award className="w-6 h-6 text-blue-600" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-medium text-blue-900 mb-2">Complete your profile to get better matches!</h3>
-            <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Add a professional bio to showcase your personality</li>
-              <li>• Include your portfolio or GitHub links</li>
-              <li>• Specify your internship preferences for better recommendations</li>
-              <li>• Add relevant skills and experience</li>
-            </ul>
+      {getCompletionTips().length > 0 && (
+        <div className="bg-blue-50 rounded-lg border border-blue-200 p-6 mt-8">
+          <div className="flex items-start space-x-4">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Award className="w-6 h-6 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-medium text-blue-900 mb-2">
+                Complete your profile to get better matches! ({formData.profileCompleteness}% complete)
+              </h3>
+              <ul className="text-sm text-blue-700 space-y-1">
+                {getCompletionTips().map((tip, index) => (
+                  <li key={index}>• {tip}</li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+    
     </div>
   );
 };
