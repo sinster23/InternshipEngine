@@ -617,6 +617,34 @@ const ProfilePage = ({ user }) => {
     }
   };
 
+  const getCompletionTips = () => {
+    const tips = [];
+    
+    if (!formData.firstName || !formData.lastName) {
+      tips.push('Add your full name to make your profile more professional');
+    }
+    if (!formData.bio) {
+      tips.push('Add a professional bio to showcase your personality and goals');
+    }
+    if (!formData.linkedinUrl && !formData.githubUrl && !formData.portfolioUrl) {
+      tips.push('Include your LinkedIn, GitHub, or portfolio links');
+    }
+    if (formData.skills.length === 0) {
+      tips.push('Add relevant skills to highlight your expertise');
+    }
+    if (formData.experience.length === 0) {
+      tips.push('Add your work experience or projects');
+    }
+    if (formData.education.length === 0) {
+      tips.push('Include your educational background');
+    }
+    if (!formData.preferences.jobType || !formData.preferences.duration) {
+      tips.push('Specify your internship preferences for better matches');
+    }
+    
+    return tips.slice(0, 4); // Show max 4 tips
+  };
+
    return (
     <div className="max-w-6xl mx-auto">
       <ProfileHeader 
@@ -634,22 +662,26 @@ const ProfilePage = ({ user }) => {
       {renderActiveSection()}
       
       {/* Profile Completion Tips */}
-      <div className="bg-blue-50 rounded-lg border border-blue-200 p-6 mt-8">
-        <div className="flex items-start space-x-4">
-          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-            <Award className="w-6 h-6 text-blue-600" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-medium text-blue-900 mb-2">Complete your profile to get better matches!</h3>
-            <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Add a professional bio to showcase your personality</li>
-              <li>• Include your portfolio or GitHub links</li>
-              <li>• Specify your internship preferences for better recommendations</li>
-              <li>• Add relevant skills and experience</li>
-            </ul>
+      {getCompletionTips().length > 0 && (
+        <div className="bg-blue-50 rounded-lg border border-blue-200 p-6 mt-8">
+          <div className="flex items-start space-x-4">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Award className="w-6 h-6 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-medium text-blue-900 mb-2">
+                Complete your profile to get better matches! ({formData.profileCompleteness}% complete)
+              </h3>
+              <ul className="text-sm text-blue-700 space-y-1">
+                {getCompletionTips().map((tip, index) => (
+                  <li key={index}>• {tip}</li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+    
     </div>
   );
 };
