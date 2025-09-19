@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   User, 
   Mail, 
@@ -158,57 +158,25 @@ const ProfilePage = ({ userId }) => {
     }
   };
 
-  const calculateProfileCompleteness = (data) => {
-    const fields = [
-      data.firstName,
-      data.lastName,
-      data.email,
-      data.phone,
-      data.location,
-      data.bio,
-      data.dateOfBirth,
-      data.linkedinUrl || data.githubUrl || data.portfolioUrl,
-      data.skills.length > 0,
-      data.experience.length > 0,
-      data.education.length > 0,
-      data.preferences.jobType,
-      data.preferences.preferredLocations.length > 0,
-      data.preferences.expectedStipend,
-      data.preferences.duration
-    ];
-    
-    const filledFields = fields.filter(field => field && field !== '').length;
-    return Math.round((filledFields / fields.length) * 100);
-  };
+  // Simple input change handler without recalculating completeness
+  const handleInputChange = useCallback((field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  }, []);
 
-  // Fixed input change handler to prevent focus loss
-  const handleInputChange = (field, value) => {
-    setFormData(prev => {
-      const newData = { ...prev, [field]: value };
-      return {
-        ...newData,
-        profileCompleteness: calculateProfileCompleteness(newData)
-      };
-    });
-  };
+  const handleNestedInputChange = useCallback((parentField, childField, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [parentField]: {
+        ...prev[parentField],
+        [childField]: value
+      }
+    }));
+  }, []);
 
-  const handleNestedInputChange = (parentField, childField, value) => {
-    setFormData(prev => {
-      const newData = {
-        ...prev,
-        [parentField]: {
-          ...prev[parentField],
-          [childField]: value
-        }
-      };
-      return {
-        ...newData,
-        profileCompleteness: calculateProfileCompleteness(newData)
-      };
-    });
-  };
-
-  const handleSave = async () => {
+  const handleSave = async () => {A
     try {
       setSaving(true);
       setError(null);
@@ -220,18 +188,18 @@ const ProfilePage = ({ userId }) => {
         throw new Error('No authenticated user found');
       }
 
-      // Add timestamp and recalculate completeness
+      // Calculate completeness only when saving
       const dataToSave = {
         ...formData,
         updatedAt: new Date().toISOString(),
-        profileCompleteness: calculateProfileCompleteness(formData)
       };
 
       // Save to Firebase
       const docRef = doc(db, 'users', currentUserId);
       await updateDoc(docRef, dataToSave);
       
-      // Update original data to new saved state
+      // Update both formData and original data to new saved state
+      setFormData(dataToSave);
       setOriginalData(dataToSave);
       setIsEditing(false);
       setSuccessMessage('Profile updated successfully!');
@@ -256,7 +224,7 @@ const ProfilePage = ({ userId }) => {
     setError(null);
   };
 
-  const addSkill = () => {
+  const addSkill = useCallback(() => {
     if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
       setFormData(prev => ({
         ...prev,
@@ -264,16 +232,16 @@ const ProfilePage = ({ userId }) => {
       }));
       setNewSkill('');
     }
-  };
+  }, [newSkill, formData.skills]);
 
-  const removeSkill = (skillToRemove) => {
+  const removeSkill = useCallback((skillToRemove) => {
     setFormData(prev => ({
       ...prev,
       skills: prev.skills.filter(skill => skill !== skillToRemove)
     }));
-  };
+  }, []);
 
-  const addExperience = () => {
+  const addExperience = useCallback(() => {
     const newExp = {
       id: Date.now().toString(),
       title: '',
@@ -286,25 +254,25 @@ const ProfilePage = ({ userId }) => {
       ...prev,
       experience: [...prev.experience, newExp]
     }));
-  };
+  }, []);
 
-  const updateExperience = (id, field, value) => {
+  const updateExperience = useCallback((id, field, value) => {
     setFormData(prev => ({
       ...prev,
       experience: prev.experience.map(exp =>
         exp.id === id ? { ...exp, [field]: value } : exp
       )
     }));
-  };
+  }, []);
 
-  const removeExperience = (id) => {
+  const removeExperience = useCallback((id) => {
     setFormData(prev => ({
       ...prev,
       experience: prev.experience.filter(exp => exp.id !== id)
     }));
-  };
+  }, []);
 
-  const addEducation = () => {
+  const addEducation = useCallback(() => {
     const newEdu = {
       id: Date.now().toString(),
       degree: '',
@@ -317,38 +285,38 @@ const ProfilePage = ({ userId }) => {
       ...prev,
       education: [...prev.education, newEdu]
     }));
-  };
+  }, []);
 
-  const updateEducation = (id, field, value) => {
+  const updateEducation = useCallback((id, field, value) => {
     setFormData(prev => ({
       ...prev,
       education: prev.education.map(edu =>
         edu.id === id ? { ...edu, [field]: value } : edu
       )
     }));
-  };
+  }, []);
 
-  const removeEducation = (id) => {
+  const removeEducation = useCallback((id) => {
     setFormData(prev => ({
       ...prev,
       education: prev.education.filter(edu => edu.id !== id)
     }));
-  };
+  }, []);
 
-  const addPreferredLocation = (location) => {
+  const addPreferredLocation = useCallback((location) => {
     if (location.trim() && !formData.preferences.preferredLocations.includes(location.trim())) {
       handleNestedInputChange('preferences', 'preferredLocations', [
         ...formData.preferences.preferredLocations,
         location.trim()
       ]);
     }
-  };
+  }, [formData.preferences.preferredLocations, handleNestedInputChange]);
 
-  const removePreferredLocation = (location) => {
+  const removePreferredLocation = useCallback((location) => {
     handleNestedInputChange('preferences', 'preferredLocations',
       formData.preferences.preferredLocations.filter(loc => loc !== location)
     );
-  };
+  }, [formData.preferences.preferredLocations, handleNestedInputChange]);
 
   if (loading) {
     return (
@@ -439,16 +407,6 @@ const ProfilePage = ({ userId }) => {
         </div>
         
         <div className="flex items-center space-x-3">
-          <div className="text-right">
-            <div className="text-2xl font-light text-gray-900">{formData.profileCompleteness}%</div>
-            <div className="text-sm text-gray-600">Profile Complete</div>
-            <div className="w-16 bg-gray-200 rounded-full h-2 mt-1">
-              <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                style={{width: `${formData.profileCompleteness}%`}}
-              ></div>
-            </div>
-          </div>
           {isEditing ? (
             <div className="flex space-x-2">
               <button
@@ -1045,7 +1003,7 @@ const ProfilePage = ({ userId }) => {
             </div>
             <div className="flex-1">
               <h3 className="font-medium text-blue-900 mb-2">
-                Complete your profile to get better matches! ({formData.profileCompleteness}% complete)
+                Complete your profile to get better matches! 
               </h3>
               <ul className="text-sm text-blue-700 space-y-1">
                 {getCompletionTips().map((tip, index) => (
