@@ -19,7 +19,10 @@ import {
   Briefcase,
   TrendingUp,
   Heart,
-  ExternalLink
+  ExternalLink,
+  Loader2,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 
 const InternshipsPage = () => {
@@ -34,97 +37,13 @@ const InternshipsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [feedbackGiven, setFeedbackGiven] = useState({});
   const [bookmarked, setBookmarked] = useState({});
+  
+  // New states for ML recommendations
+  const [recommendedInternships, setRecommendedInternships] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Sample recommended internships data
-  const recommendedInternships = [
-    {
-      id: 1,
-      company: "Google",
-      logo: "G",
-      role: "Product Management Intern",
-      stipend: "₹50,000/month",
-      duration: "3 months", 
-      location: "Remote",
-      matchScore: 95,
-      matchType: "High Match",
-      tags: ["Product Management", "Strategy", "Analytics"],
-      description: "Join Google's PM team and work on products used by billions of users worldwide.",
-      requirements: ["MBA/Engineering", "0-1 years experience", "Strong analytical skills"],
-      sector: "Technology",
-      remote: true,
-      featured: true
-    },
-    {
-      id: 2,
-      company: "Microsoft",
-      logo: "M", 
-      role: "PM Intern - Azure Cloud",
-      stipend: "₹45,000/month",
-      duration: "6 months",
-      location: "Bangalore",
-      matchScore: 87,
-      matchType: "High Match",
-      tags: ["Cloud Computing", "Product Strategy", "B2B"],
-      description: "Work with Azure team to build enterprise cloud solutions for global customers.",
-      requirements: ["Technical background", "Cloud knowledge preferred", "Communication skills"],
-      sector: "Technology",
-      remote: false,
-      featured: true
-    },
-    {
-      id: 3,
-      company: "Zomato",
-      logo: "Z",
-      role: "Associate PM Intern",
-      stipend: "₹35,000/month", 
-      duration: "4 months",
-      location: "Gurgaon",
-      matchScore: 82,
-      matchType: "Good Match",
-      tags: ["Food Tech", "Consumer Products", "Growth"],
-      description: "Drive growth initiatives for Zomato's consumer products across multiple markets.",
-      requirements: ["Analytics background", "Consumer insights", "Growth mindset"],
-      sector: "Food Tech",
-      remote: false,
-      featured: true
-    },
-    {
-      id: 4,
-      company: "Flipkart",
-      logo: "F",
-      role: "Product Intern - Commerce",
-      stipend: "₹40,000/month",
-      duration: "5 months", 
-      location: "Bangalore",
-      matchScore: 79,
-      matchType: "Good Match", 
-      tags: ["E-commerce", "User Experience", "Mobile"],
-      description: "Shape the shopping experience for millions of users on Flipkart platform.",
-      requirements: ["Product sense", "User research", "Data analysis"],
-      sector: "E-commerce",
-      remote: false,
-      featured: true
-    },
-    {
-      id: 5,
-      company: "Paytm",
-      logo: "P",
-      role: "FinTech PM Intern",
-      stipend: "₹38,000/month",
-      duration: "3 months",
-      location: "Noida",
-      matchScore: 76,
-      matchType: "Good Match",
-      tags: ["FinTech", "Payments", "Financial Services"],
-      description: "Work on innovative payment solutions and financial products for Indian market.",
-      requirements: ["Finance/Tech background", "Problem solving", "Market research"],
-      sector: "FinTech",
-      remote: false,
-      featured: true
-    }
-  ];
-
-  // Sample additional internships for explore more section
+  // Sample additional internships for explore more section (keeping static for now)
   const additionalInternships = [
     {
       id: 6,
@@ -202,6 +121,120 @@ const InternshipsPage = () => {
       remote: false
     }
   ];
+
+  // Function to get company logo (first letter)
+  const getCompanyLogo = (companyName) => {
+    return companyName ? companyName.charAt(0).toUpperCase() : 'C';
+  };
+
+  // Function to determine match type based on percentage
+  const getMatchType = (percentage) => {
+    if (percentage >= 85) return 'High Match';
+    if (percentage >= 70) return 'Good Match';
+    return 'Moderate Match';
+  };
+
+  // Function to extract skills tags from requirements
+  const extractSkillsTags = (skillsRequirement) => {
+    if (!skillsRequirement) return [];
+    
+    // Split by common separators and clean up
+    const skills = skillsRequirement
+      .split(/[,;|]/)
+      .map(skill => skill.trim())
+      .filter(skill => skill.length > 0)
+      .slice(0, 3); // Limit to 3 tags for UI consistency
+    
+    return skills;
+  };
+
+  // Function to map sector/category
+  const mapSector = (category) => {
+    const sectorMap = {
+      'technology': 'Technology',
+      'fintech': 'FinTech',
+      'finance': 'FinTech',
+      'food': 'Food Tech',
+      'ecommerce': 'E-commerce',
+      'education': 'Education',
+      'healthcare': 'Healthcare',
+      'transport': 'Transportation',
+      'consulting': 'Consulting'
+    };
+    
+    return sectorMap[category?.toLowerCase()] || 'Other';
+  };
+
+  // Function to transform backend data to match UI format
+  const transformRecommendationData = (backendData) => {
+    return backendData.map((item, index) => ({
+      id: `rec_${index + 1}`,
+      company: item.company_name,
+      logo: getCompanyLogo(item.company_name),
+      role: item.internship_title,
+      stipend: `₹${item.stipend_inr?.toLocaleString()}/month` || 'Not specified',
+      duration: `${item.duration_months} months` || 'Not specified',
+      location: item.location || 'Not specified',
+      matchScore: Math.round(item.match_percentage) || 0,
+      matchType: getMatchType(item.match_percentage),
+      tags: extractSkillsTags(item.skills_requirement),
+      description: item.description || `Join ${item.company_name} as a ${item.internship_title} and gain valuable industry experience.`,
+      requirements: item.skills_requirement ? 
+        item.skills_requirement.split(',').map(skill => skill.trim()).slice(0, 3) : 
+        ['Relevant skills required', 'Good communication', 'Team player'],
+      sector: mapSector(item.category),
+      remote: item.location?.toLowerCase().includes('remote') || false,
+      featured: item.match_percentage >= 85 // Mark high match as featured
+    }));
+  };
+
+  // Fetch recommendations from your ML API
+  const fetchRecommendations = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // TODO: Replace with actual user data from Firebase/context
+      // You should get this from your user authentication system
+      const userData = {
+        education: "Computer Science Bachelor", // Get from user profile
+        skills: "Python React JavaScript Machine Learning", // Get from user profile
+        top_n: 5
+      };
+      
+      const response = await fetch("http://localhost:5000/api/recommend", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          // Add any auth headers if needed
+          // "Authorization": `Bearer ${userToken}`
+        },
+        body: JSON.stringify(userData)
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.data && data.data.recommendations) {
+        const transformedData = transformRecommendationData(data.data.recommendations);
+        setRecommendedInternships(transformedData);
+      } else {
+        throw new Error(data.message || 'Failed to fetch recommendations');
+      }
+    } catch (err) {
+      console.error('Error fetching recommendations:', err);
+      setError(err.message || 'Failed to load recommendations. Please try again.');
+      
+      // Fallback to sample data in case of error (optional)
+      setRecommendedInternships([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load recommendations on component mount
+  useEffect(() => {
+    fetchRecommendations();
+  }, []);
 
   const handleFeedback = (internshipId, type) => {
     setFeedbackGiven(prev => ({
@@ -415,6 +448,50 @@ const InternshipsPage = () => {
     </div>
   );
 
+  const LoadingState = () => (
+    <div className="flex items-center justify-center py-12">
+      <div className="text-center">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">Finding Perfect Matches</h3>
+        <p className="text-gray-600">We're analyzing your profile to find the best internship opportunities...</p>
+      </div>
+    </div>
+  );
+
+  const ErrorState = () => (
+    <div className="flex items-center justify-center py-12">
+      <div className="text-center max-w-md">
+        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">Unable to Load Recommendations</h3>
+        <p className="text-gray-600 mb-4">{error}</p>
+        <button 
+          onClick={fetchRecommendations}
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Try Again
+        </button>
+      </div>
+    </div>
+  );
+
+  const EmptyState = () => (
+    <div className="flex items-center justify-center py-12">
+      <div className="text-center max-w-md">
+        <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">No Recommendations Yet</h3>
+        <p className="text-gray-600 mb-4">Complete your profile to get personalized internship recommendations.</p>
+        <button 
+          onClick={fetchRecommendations}
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Refresh Recommendations
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="p-8 max-w-7xl mx-auto">
       {/* Header */}
@@ -427,8 +504,16 @@ const InternshipsPage = () => {
           <div className="flex items-center space-x-4">
             <div className="flex items-center text-sm text-gray-600">
               <TrendingUp className="w-4 h-4 mr-1 text-green-600" />
-              <span>95% match rate this week</span>
+              <span>AI-powered recommendations</span>
             </div>
+            <button 
+              onClick={fetchRecommendations}
+              disabled={loading}
+              className="flex items-center px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
           </div>
         </div>
       </div>
@@ -440,35 +525,45 @@ const InternshipsPage = () => {
             <Target className="w-6 h-6 text-blue-600 mr-3" />
             <div>
               <h2 className="text-xl font-medium text-gray-900">Handpicked for You</h2>
-              <p className="text-gray-600 text-sm">We've selected these internships based on your profile and preferences</p>
+              <p className="text-gray-600 text-sm">AI-powered recommendations based on your profile and preferences</p>
             </div>
           </div>
-          <div className="flex items-center text-sm text-gray-500">
-            Updated 2 hours ago
-          </div>
+          {!loading && !error && recommendedInternships.length > 0 && (
+            <div className="flex items-center text-sm text-gray-500">
+              Updated just now
+            </div>
+          )}
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {recommendedInternships.slice(0, showMore ? 5 : 3).map((internship) => (
-            <InternshipCard 
-              key={internship.id} 
-              internship={internship} 
-              isRecommended={true}
-              showFeedback={true}
-            />
-          ))}
-        </div>
+        {loading && <LoadingState />}
+        {error && <ErrorState />}
+        {!loading && !error && recommendedInternships.length === 0 && <EmptyState />}
         
-        {!showMore && (
-          <div className="text-center mt-6">
-            <button 
-              onClick={() => setShowMore(true)}
-              className="inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
-            >
-              Show More Recommendations
-              <ChevronDown className="w-4 h-4 ml-2" />
-            </button>
-          </div>
+        {!loading && !error && recommendedInternships.length > 0 && (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {recommendedInternships.slice(0, showMore ? recommendedInternships.length : 3).map((internship) => (
+                <InternshipCard 
+                  key={internship.id} 
+                  internship={internship} 
+                  isRecommended={true}
+                  showFeedback={true}
+                />
+              ))}
+            </div>
+            
+            {recommendedInternships.length > 3 && !showMore && (
+              <div className="text-center mt-6">
+                <button 
+                  onClick={() => setShowMore(true)}
+                  className="inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Show More Recommendations ({recommendedInternships.length - 3} more)
+                  <ChevronDown className="w-4 h-4 ml-2" />
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -521,7 +616,7 @@ const InternshipsPage = () => {
           <div className="ml-4 flex-1">
             <h3 className="font-medium text-gray-900 mb-2">Help Us Improve Your Recommendations</h3>
             <p className="text-gray-600 text-sm mb-4">
-              Your feedback helps us understand what you're looking for and improves our recommendations for you and other users.
+              Your feedback helps us understand what you're looking for and improves our ML recommendations for you and other users.
             </p>
             <div className="flex items-center space-x-4">
               <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
@@ -549,7 +644,7 @@ const InternshipsPage = () => {
           <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
             <Heart className="w-6 h-6 text-blue-600" />
           </div>
-          <h3 className="font-medium text-gray-900 mb-1">5</h3>
+          <h3 className="font-medium text-gray-900 mb-1">{Object.keys(bookmarked).filter(key => bookmarked[key]).length}</h3>
           <p className="text-gray-600 text-sm">Saved Internships</p>
         </div>
         
@@ -557,7 +652,11 @@ const InternshipsPage = () => {
           <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
             <TrendingUp className="w-6 h-6 text-purple-600" />
           </div>
-          <h3 className="font-medium text-gray-900 mb-1">87%</h3>
+          <h3 className="font-medium text-gray-900 mb-1">
+            {recommendedInternships.length > 0 
+              ? Math.round(recommendedInternships.reduce((acc, intern) => acc + intern.matchScore, 0) / recommendedInternships.length)
+              : 0}%
+          </h3>
           <p className="text-gray-600 text-sm">Average Match Score</p>
         </div>
       </div>
