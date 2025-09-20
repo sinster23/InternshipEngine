@@ -176,7 +176,7 @@ const ProfilePage = ({ userId }) => {
     }));
   }, []);
 
-  const handleSave = async () => {A
+  const handleSave = async () => {
     try {
       setSaving(true);
       setError(null);

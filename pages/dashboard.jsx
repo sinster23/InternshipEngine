@@ -21,7 +21,9 @@ import {
   ChevronLeft,
   ChevronDown,
   Plus,
-  LogOut
+  LogOut,
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../src/firebase"; // adjust path if needed
@@ -183,80 +185,227 @@ const GettingStartedSection = () => {
 };
 
 // Recommended Internships Component
-const RecommendedInternships = () => {
-  const internships = [
-    {
-      id: 1,
-      company: "Google",
-      logo: "G",
-      role: "Product Management Intern",
-      stipend: "₹50,000/month",
-      duration: "3 months",
-      location: "Remote",
-      matchScore: 95,
-      tags: ["Tech", "Remote", "Full-time"]
-    },
-    {
-      id: 2,
-      company: "Microsoft", 
-      logo: "M",
-      role: "PM Intern - Azure",
-      stipend: "₹45,000/month",
-      duration: "6 months",
-      location: "Bangalore",
-      matchScore: 87,
-      tags: ["Tech", "Onsite", "Full-time"]
-    },
-    {
-      id: 3,
-      company: "Zomato",
-      logo: "Z", 
-      role: "Associate PM Intern",
-      stipend: "₹35,000/month",
-      duration: "4 months",
-      location: "Gurgaon",
-      matchScore: 82,
-      tags: ["Food Tech", "Onsite", "Part-time"]
+const RecommendedInternships = ({ user, profile }) => {
+  const [internships, setInternships] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [confidence, setConfidence] = useState('');
+  const [predictedCategory, setPredictedCategory] = useState('');
+
+  // Function to get company logo initial
+  const getCompanyInitial = (companyName) => {
+    return companyName.charAt(0).toUpperCase();
+  };
+
+  // Function to format duration
+  const formatDuration = (months) => {
+    if (months === 1) return '1 month';
+    return `${months} months`;
+  };
+
+  // Function to generate tags based on skills and category
+  const generateTags = (skills, category, location) => {
+    const tags = [];
+    
+    // Add category tag
+    if (category) {
+      tags.push(category.charAt(0).toUpperCase() + category.slice(1));
     }
-  ];
+    
+    // Add location type tag
+    if (location.toLowerCase().includes('remote')) {
+      tags.push('Remote');
+    } else {
+      tags.push('Onsite');
+    }
+    
+    // Add a skill-based tag if available
+    if (skills) {
+      const skillList = skills.split(' ');
+      if (skillList.length > 0) {
+        tags.push(skillList[0]);
+      }
+    }
+    
+    return tags.slice(0, 3); // Limit to 3 tags
+  };
+
+  // Helper function to convert array to string
+  const arrayToString = (value) => {
+    if (Array.isArray(value)) {
+      return value.join(' ');
+    }
+    return value || '';
+  };
+
+  // Fetch recommendations from backend
+  const fetchRecommendations = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Prepare payload from user profile - ensure strings not arrays
+      const payload = {
+        education: arrayToString(profile?.education) || "Computer Science Bachelor",
+        skills: arrayToString(profile?.skills) || "Python React JavaScript Machine Learning",
+        top_n: 3
+      };
+
+      console.log("Sending payload to backend:", payload); // Debug log
+
+      const response = await fetch("http://localhost:5000/api/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setInternships(data.data.recommendations);
+        setConfidence(data.data.confidence);
+        setPredictedCategory(data.data.predicted_category);
+      } else {
+        setError(data.message || "Failed to fetch recommendations");
+      }
+    } catch (err) {
+      console.error("Error fetching recommendations:", err);
+      if (err.message.includes('HTTP error')) {
+        setError(`Server error: ${err.message}`);
+      } else {
+        setError("Unable to connect to recommendation service");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch recommendations on component mount
+  useEffect(() => {
+    if (user && profile) {
+      fetchRecommendations();
+    }
+  }, [user, profile]);
+
+  if (loading) {
+    return (
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-medium text-gray-900">Recommended Internships</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-lg border border-gray-200 p-6 animate-pulse">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
+                <div className="ml-3 flex-1">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </div>
+              <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
+              <div className="space-y-2">
+                <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-medium text-gray-900">Recommended Internships</h2>
+          <button 
+            onClick={fetchRecommendations}
+            className="flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm"
+          >
+            <RefreshCw className="w-4 h-4 mr-1" />
+            Retry
+          </button>
+        </div>
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="flex items-center justify-center text-center">
+            <div>
+              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <h3 className="font-medium text-gray-900 mb-2">Unable to load recommendations</h3>
+              <p className="text-gray-600 text-sm mb-4">{error}</p>
+              <button 
+                onClick={fetchRecommendations}
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mb-8">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-medium text-gray-900">Recommended Internships</h2>
-        <button className="text-blue-600 hover:text-blue-700 font-medium text-sm">
-          View all internships →
-        </button>
+        <div>
+          <h2 className="text-xl font-medium text-gray-900">Recommended Internships</h2>
+          {confidence && predictedCategory && (
+            <p className="text-sm text-gray-600 mt-1">
+              Predicted category: <span className="font-medium">{predictedCategory}</span> 
+              {" "}(Confidence: {confidence})
+            </p>
+          )}
+        </div>
+        <div className="flex items-center space-x-3">
+          <button 
+            onClick={fetchRecommendations}
+            className="flex items-center text-gray-600 hover:text-gray-800 text-sm"
+          >
+            <RefreshCw className="w-4 h-4 mr-1" />
+            Refresh
+          </button>
+          <button className="text-blue-600 hover:text-blue-700 font-medium text-sm">
+            View all internships →
+          </button>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {internships.map((internship) => (
-          <div key={internship.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        {internships.map((internship, index) => (
+          <div key={index} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold text-lg">
-                  {internship.logo}
+                  {getCompanyInitial(internship.company_name)}
                 </div>
                 <div className="ml-3">
-                  <h3 className="font-medium text-gray-900">{internship.company}</h3>
+                  <h3 className="font-medium text-gray-900">{internship.company_name}</h3>
                   <div className="flex items-center text-blue-600 text-sm">
                     <Star className="w-3 h-3 mr-1 fill-current" />
-                    {internship.matchScore}% match
+                    {internship.match_percentage} match
                   </div>
                 </div>
               </div>
             </div>
             
-            <h4 className="font-medium text-gray-900 mb-3">{internship.role}</h4>
+            <h4 className="font-medium text-gray-900 mb-3">{internship.internship_title}</h4>
             
             <div className="space-y-2 mb-4">
               <div className="flex items-center text-sm text-gray-600">
                 <DollarSign className="w-4 h-4 mr-2" />
-                {internship.stipend}
+                ₹{internship.stipend_inr.toLocaleString()}/month
               </div>
               <div className="flex items-center text-sm text-gray-600">
                 <Clock className="w-4 h-4 mr-2" />
-                {internship.duration}
+                {formatDuration(internship.duration_months)}
               </div>
               <div className="flex items-center text-sm text-gray-600">
                 <MapPin className="w-4 h-4 mr-2" />
@@ -264,9 +413,14 @@ const RecommendedInternships = () => {
               </div>
             </div>
             
+            <div className="mb-4">
+              <p className="text-xs text-gray-500 mb-2">Required Skills:</p>
+              <p className="text-sm text-gray-700">{internship.skills_requirement}</p>
+            </div>
+            
             <div className="flex flex-wrap gap-2 mb-4">
-              {internship.tags.map((tag, index) => (
-                <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+              {generateTags(internship.skills_requirement, predictedCategory, internship.location).map((tag, tagIndex) => (
+                <span key={tagIndex} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
                   {tag}
                 </span>
               ))}
@@ -480,11 +634,13 @@ const InternshipDashboard = () => {
     return <LoadingScreen />;
   }
  
-
+  const signOut = () => {
+    auth.signOut();
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} user={user} />
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} user={user} signOut={signOut} />
       
       <div className="flex-1 ml-64">
         <div className="h-screen overflow-y-auto">
@@ -497,7 +653,7 @@ const InternshipDashboard = () => {
                   {/* Left Column - Main Content */}
                   <div className="lg:col-span-3 space-y-8">
                     <GettingStartedSection />
-                    <RecommendedInternships />
+                    <RecommendedInternships user={user} profile={profile} />
                     <BottomSection />
                   </div>
                   

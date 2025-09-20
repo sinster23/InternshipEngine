@@ -24,6 +24,11 @@ import {
   AlertCircle,
   RefreshCw
 } from 'lucide-react';
+import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+
+const db = getFirestore();
+const auth = getAuth();
 
 const InternshipsPage = () => {
   const [showMore, setShowMore] = useState(false);
@@ -196,9 +201,29 @@ const InternshipsPage = () => {
       
       // TODO: Replace with actual user data from Firebase/context
       // You should get this from your user authentication system
-      const userData = {
-        education: "Computer Science Bachelor", // Get from user profile
-        skills: "Python React JavaScript Machine Learning", // Get from user profile
+       const user = auth.currentUser;
+      if (!user) {
+        alert("Please log in first");
+        setLoading(false);
+        return;
+      }
+
+      // 2️⃣ Fetch user document from Firestore
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        console.error("User data not found!");
+        setLoading(false);
+        return;
+      }
+
+      const userData = userSnap.data();
+
+      // 3️⃣ Build payload dynamically from Firestore data
+      const payload = {
+        education: userData.course || "",                  // Example: "Computer Science Bachelor"
+        skills: (userData.skills || []).join(" "),         // Convert array to space-separated string
         top_n: 5
       };
       
@@ -209,7 +234,7 @@ const InternshipsPage = () => {
           // Add any auth headers if needed
           // "Authorization": `Bearer ${userToken}`
         },
-        body: JSON.stringify(userData)
+        body: JSON.stringify(payload)
       });
       
       const data = await response.json();
