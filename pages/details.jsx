@@ -6,10 +6,6 @@ import { markProfileComplete } from '../auth/AuthFunctions';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
 
-
-
-
-
 export default function SignUpPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -52,10 +48,20 @@ export default function SignUpPage() {
   ];
 
   // Popular cities for internships
-  const popularCities = [
-    'New York', 'San Francisco', 'Seattle', 'Austin', 'Boston', 'Chicago',
-    'Los Angeles', 'Denver', 'Atlanta', 'Washington DC', 'Remote'
-  ];
+const popularCities = [
+  "Mumbai",
+  "Delhi",
+  "Bengaluru",
+  "Hyderabad",
+  "Chennai",
+  "Kolkata",
+  "Pune",
+  "Ahmedabad",
+  "Jaipur",
+  "Chandigarh",
+  "Remote"
+];
+
 
   const steps = [
     {
@@ -191,18 +197,24 @@ export default function SignUpPage() {
   const isStepCompleted = (stepIndex) => {
     switch (stepIndex) {
       case 0: // Personal Information
-        return formData.firstName && formData.lastName && 
-             formData.phone;
+        return formData.firstName && formData.lastName && formData.phone;
       case 1: // Resume Upload
         return uploadedFile !== null;
       case 2: // Education Details
-        return formData.university && formData.course && formData.graduationYear && formData.experience;
+        return (
+          formData.university &&
+          formData.course &&
+          formData.graduationYear &&
+          formData.experience
+        );
       case 3: // Internship Preferences - NOW REQUIRED
-        return formData.skills.length > 0 && 
-               formData.internshipDuration && 
-               formData.preferredCities.length > 0 && 
-               formData.workPreference && 
-               formData.availability;
+        return (
+          formData.skills.length > 0 &&
+          formData.internshipDuration &&
+          formData.preferredCities.length > 0 &&
+          formData.workPreference &&
+          formData.availability
+        );
       case 4: // Additional Information - now always completed (optional step)
         return true;
       default:
@@ -210,10 +222,67 @@ export default function SignUpPage() {
     }
   };
 
+  const uploadToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append(
+      "upload_preset",
+      import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
+    );
+    formData.append('resource_type', 'raw');
+    formData.append("folder", "resumes"); 
+
+    try {
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${
+          import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+        }/raw/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.secure_url) {
+        return {
+          url: data.secure_url,
+          publicId: data.public_id,
+          originalFilename: data.original_filename,
+          bytes: data.bytes,
+          format: data.format,
+        };
+      } else {
+        throw new Error("Upload failed");
+      }
+    } catch (error) {
+      console.error("Cloudinary upload error:", error);
+      throw error;
+    }
+  };
+
+
   // Function to save data to Firebase
   const saveToFirestore = async () => {
   setIsSubmitting(true);
   try {
+     let resumeData = null;
+    
+    // Upload resume to Cloudinary if exists
+    if (uploadedFile && uploadedFile.file) {
+      const cloudinaryResult = await uploadToCloudinary(uploadedFile.file);
+      
+      resumeData = {
+        name: uploadedFile.name,
+        size: uploadedFile.size,
+        type: uploadedFile.type,
+        cloudinaryUrl: cloudinaryResult.url,
+        cloudinaryPublicId: cloudinaryResult.publicId,
+        uploadedAt: serverTimestamp(),
+        originalFilename: cloudinaryResult.originalFilename,
+      };
+    }
     const userData = {
       firstName: formData.firstName,
       lastName: formData.lastName,
@@ -225,13 +294,7 @@ export default function SignUpPage() {
       course: formData.course,
       graduationYear: parseInt(formData.graduationYear),
       experience: formData.experience,
-      resume: uploadedFile
-        ? {
-            name: uploadedFile.name,
-            size: uploadedFile.size,
-            type: uploadedFile.type,
-          }
-        : null,
+      resume: resumeData,
       skills: formData.skills,
       internshipDuration: formData.internshipDuration,
       preferredCities: formData.preferredCities,
@@ -247,7 +310,7 @@ export default function SignUpPage() {
     await markProfileComplete(auth.currentUser.uid, userData);
 
     alert("Account created successfully! Welcome to PM Internships Hub.");
-    navigate('/dashboard');
+    navigate("/");
 
     setIsModalOpen(false);
     setCurrentStep(0);
@@ -296,6 +359,7 @@ export default function SignUpPage() {
     } else {
       // Final submission - save to Firebase
       await saveToFirestore();
+
     }
   };
 

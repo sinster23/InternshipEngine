@@ -43,6 +43,8 @@ const ProfilePage = ({ userId }) => {
   
   // Separate state for original data to handle cancellation
   const [originalData, setOriginalData] = useState(null);
+  const [uploadingResume, setUploadingResume] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -57,6 +59,7 @@ const ProfilePage = ({ userId }) => {
     portfolioUrl: '',
     skills: [],
     experience: [],
+    resume: null,
     education: [],
     preferences: {
       jobType: '',
@@ -75,6 +78,129 @@ const ProfilePage = ({ userId }) => {
   const getCurrentUserId = () => {
     return userId || auth.currentUser?.uid;
   };
+
+  const uploadToCloudinary = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+  formData.append("folder", "resumes"); // optional: put all resumes in one folder
+
+  try {
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/raw/upload`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.secure_url) {
+      return {
+        url: data.secure_url,
+        publicId: data.public_id,
+        originalFilename: data.original_filename,
+        bytes: data.bytes,
+        format: data.format,
+      };
+    } else {
+      throw new Error("Upload failed");
+    }
+  } catch (error) {
+    console.error("Cloudinary upload error:", error);
+    throw error;
+  }
+};
+
+const handleResumeUpload = async (files) => {
+  const file = files[0];
+  if (!file || (!file.type.includes('pdf') && !file.name.endsWith('.pdf'))) {
+    setError('Please upload a PDF file only');
+    return;
+  }
+
+  try {
+    setUploadingResume(true);
+    setError(null);
+    
+    const cloudinaryResult = await uploadToCloudinary(file);
+    
+    const resumeData = {
+      name: file.name,
+      size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+      type: file.type,
+      cloudinaryUrl: cloudinaryResult.url,
+      cloudinaryPublicId: cloudinaryResult.publicId,
+      uploadedAt: new Date().toISOString(),
+    };
+    
+    handleInputChange('resume', resumeData);
+    setSuccessMessage('Resume uploaded successfully!');
+    setTimeout(() => setSuccessMessage(''), 3000);
+  } catch (err) {
+    console.error('Resume upload error:', err);
+    setError('Failed to upload resume. Please try again.');
+  } finally {
+    setUploadingResume(false);
+  }
+};
+
+const handleDrag = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  setDragActive(e.type === "dragenter" || e.type === "dragover");
+};
+
+const handleDrop = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  setDragActive(false);
+  
+  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+    handleResumeUpload(e.dataTransfer.files);
+  }
+};
+
+const downloadResume = async (resumeUrl, fileName) => {
+  try {
+    // Add loading state for download
+    setLoading(true);
+    
+    // Fetch the file from Cloudinary
+    const response = await fetch(resumeUrl);
+    const blob = await response.blob();
+    
+    // Create a download link
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName || 'resume.pdf';
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    
+    // Cleanup
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    setSuccessMessage('Resume downloaded successfully!');
+    setTimeout(() => setSuccessMessage(''), 3000);
+  } catch (error) {
+    console.error('Download error:', error);
+    setError('Failed to download resume. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
+
+const removeResume = () => {
+  handleInputChange('resume', null);
+  setSuccessMessage('Resume removed successfully!');
+  setTimeout(() => setSuccessMessage(''), 3000);
+};
+
 
   const loadProfileData = async () => {
     try {
@@ -108,6 +234,7 @@ const ProfilePage = ({ userId }) => {
           skills: userData.skills || [],
           experience: userData.experience || [],
           education: userData.education || [],
+          resume: userData.resume || null, 
           preferences: {
             jobType: userData.workPreference || '',
             preferredLocations: userData.preferredCities || [],
@@ -135,6 +262,7 @@ const ProfilePage = ({ userId }) => {
           skills: [],
           experience: [],
           education: [],
+          reusme: null,
           preferences: {
             jobType: '',
             preferredLocations: [],
@@ -641,6 +769,140 @@ const ProfilePage = ({ userId }) => {
     </div>
   );
 
+const ResumeSection = () => (
+  <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <h2 className="text-xl font-medium text-gray-900 mb-6">Resume</h2>
+    
+    {formData.resume ? (
+      <div className="border-2 border-green-200 rounded-xl p-6 bg-green-50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <FileText className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-900">{formData.resume.name}</h3>
+              <p className="text-sm text-gray-600">
+                {formData.resume.size} • Uploaded {new Date(formData.resume.uploadedAt).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => downloadResume(formData.resume.cloudinaryUrl, formData.resume.name)}
+              disabled={loading}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <Loader className="w-4 h-4 mr-2 animate-spin" />
+                  Downloading...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 mr-2 transform rotate-180" />
+                  Download
+                </>
+              )}
+            </button>
+            {isEditing && (
+              <>
+                <button
+                  onClick={() => document.getElementById('resume-upload').click()}
+                  className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Replace
+                </button>
+                <button
+                  onClick={removeResume}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Remove
+                </button>
+                {/* Hidden file input for replace functionality */}
+                <input
+                  id="resume-upload"
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) => handleResumeUpload(e.target.files)}
+                  className="hidden"
+                />
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    ) : (
+      isEditing ? (
+        <div
+          className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
+            dragActive
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+          }`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
+          {uploadingResume ? (
+            <div className="flex flex-col items-center">
+              <Loader className="w-8 h-8 text-blue-600 animate-spin mb-3" />
+              <p className="text-blue-600 font-medium">Uploading your resume...</p>
+            </div>
+          ) : (
+            <>
+              <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h4 className="text-lg font-medium text-gray-900 mb-2">
+                Upload your resume
+              </h4>
+              <p className="text-gray-600 mb-4">
+                Drag and drop your resume here, or click to browse
+              </p>
+              <input
+                type="file"
+                accept=".pdf"
+                onChange={(e) => handleResumeUpload(e.target.files)}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <button
+                type="button"
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              >
+                Choose File
+              </button>
+              <p className="text-sm text-gray-500 mt-3">
+                PDF files only • Maximum 10MB
+              </p>
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-500">No resume uploaded yet</p>
+          <p className="text-sm text-gray-400">Click "Edit Profile" to upload your resume</p>
+        </div>
+      )
+    )}
+    
+    {formData.resume && (
+      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h4 className="font-medium text-blue-900 mb-2 text-sm">Resume Benefits</h4>
+        <ul className="text-xs text-blue-800 space-y-1">
+          <li>• AI-powered matching with relevant internships</li>
+          <li>• ATS compatibility scoring</li>
+          <li>• Faster application process</li>
+          <li>• Resume optimization suggestions</li>
+        </ul>
+      </div>
+    )}
+  </div>
+);
+
   const ExperienceSection = () => (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-6">
@@ -916,7 +1178,8 @@ const ProfilePage = ({ userId }) => {
     const tabs = [
       { id: 'personal', name: 'Personal Info', icon: User },
       { id: 'skills', name: 'Skills', icon: Star },
-      { id: 'experience', name: 'Experience', icon: Briefcase },
+      { id: 'resume', name: 'Resume', icon: FileText },
+      // { id: 'experience', name: 'Experience', icon: Briefcase },
       { id: 'education', name: 'Education', icon: GraduationCap },
       { id: 'preferences', name: 'Preferences', icon: Target }
     ];
@@ -949,6 +1212,8 @@ const ProfilePage = ({ userId }) => {
         return <PersonalInfoSection />;
       case 'skills':
         return <SkillsSection />;
+      case 'resume':
+      return <ResumeSection />;
       case 'experience':
         return <ExperienceSection />;
       case 'education':

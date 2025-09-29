@@ -80,41 +80,41 @@ export default function InternMatchSignIn() {
     setLoading(false);
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 flex flex-col items-center justify-center p-4">
+ return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex flex-col items-center justify-center p-4">
       {/* HEADER */}
       <div className="mb-8 text-center">
-        <h1 className="text-4xl font-bold text-blue-600 tracking-tight">
-          InternMatch
+        <h1 className="text-4xl font-bold text-white tracking-tight">
+          InternSathi
         </h1>
       </div>
       
       <div className="w-full max-w-lg">
         {/* Main Sign In Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+        <div className="bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-700">
           {/* Sign In Header */}
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Log In</h2>
-            <p className="text-gray-600 text-sm">Welcome back! Please sign in to your account</p>
+            <h2 className="text-2xl font-semibold text-white mb-2">Log In</h2>
+            <p className="text-gray-400 text-sm">Welcome back! Please sign in to your account</p>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center">
-              <AlertCircle className="h-4 w-4 text-red-500 mr-2" />
-              <span className="text-red-700 text-sm">{error}</span>
+            <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg flex items-center">
+              <AlertCircle className="h-4 w-4 text-red-400 mr-2" />
+              <span className="text-red-300 text-sm">{error}</span>
             </div>
           )}
 
           {/* Sign In Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-4">
             {/* Social Sign In Buttons */}
             <div className="space-y-3">
               <button
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={loading}
-                className="w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gray-700 border border-gray-600 text-gray-300 py-3 px-4 rounded-lg font-medium hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
@@ -133,7 +133,7 @@ export default function InternMatchSignIn() {
                 type="button"
                 onClick={handleAppleSignIn}
                 disabled={loading}
-                className="w-full bg-black text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-white text-black py-3 px-4 rounded-lg font-medium hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
@@ -147,17 +147,17 @@ export default function InternMatchSignIn() {
             {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
+                <div className="w-full border-t border-gray-600"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">OR</span>
+                <span className="px-2 bg-gray-800 text-gray-400">OR</span>
               </div>
             </div>
 
             {/* Email Input */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email address <span className="text-red-500">*</span>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                Email address <span className="text-red-400">*</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -169,17 +169,16 @@ export default function InternMatchSignIn() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-600 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-400"
                   placeholder="Enter your email"
-                  required
                 />
               </div>
             </div>
 
             {/* Password Input */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password <span className="text-red-500">*</span>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+                Password <span className="text-red-400">*</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -191,9 +190,8 @@ export default function InternMatchSignIn() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
-                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="block w-full pl-10 pr-10 py-3 border border-gray-600 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-400"
                   placeholder="Enter your password"
-                  required
                 />
                 <button
                   type="button"
@@ -202,9 +200,9 @@ export default function InternMatchSignIn() {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center disabled:opacity-50"
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-300" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-300" />
                   )}
                 </button>
               </div>
@@ -212,9 +210,9 @@ export default function InternMatchSignIn() {
 
             {/* Sign In Button */}
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 mt-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              onClick={handleSubmit}
+              disabled={loading || !email || !password}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-colors duration-200 mt-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
               {loading ? (
                 <>
@@ -225,15 +223,15 @@ export default function InternMatchSignIn() {
                 'Log In'
               )}
             </button>
-          </form>
+          </div>
 
           {/* Footer Links */}
           <div className="flex justify-center space-x-4 mt-6 text-sm">
-            <Link to="/registration" className="text-blue-600 hover:text-blue-800 font-medium">
+            <a href="/registration" className="text-blue-400 hover:text-blue-300 font-medium">
               Create an account
-            </Link>
-            <span className="text-gray-300">|</span>
-            <a href="#" className="text-blue-600 hover:text-blue-800 font-medium">
+            </a>
+            <span className="text-gray-600">|</span>
+            <a href="#" className="text-blue-400 hover:text-blue-300 font-medium">
               Forgot password?
             </a>
           </div>

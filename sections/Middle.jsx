@@ -24,14 +24,14 @@ export default function () {
 
   return (
     <>
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-900">
         <div className="max-w-7xl mx-auto">
           {/* Full Width Header */}
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-blue-900 mb-4 whitespace-nowrap">
-              Why choose our <span className="text-blue-600">AI platform?</span>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 whitespace-nowrap">
+              Why choose our <span className="text-blue-400">AI platform?</span>
             </h2>
-            <p className="text-lg text-blue-700 leading-relaxed max-w-3xl mx-auto">
+            <p className="text-lg text-gray-300 leading-relaxed max-w-3xl mx-auto">
               Get matched with top PM internships using advanced AI algorithms that understand your skills, preferences, and career goals.
             </p>
           </div>
@@ -49,8 +49,8 @@ export default function () {
                     onClick={() => setActiveFeature(index)}
                     className={`rounded-xl p-6 transform transition-all duration-300 hover:shadow-lg cursor-pointer ${
                       isActive
-                        ? 'bg-blue-50 border-2 border-blue-200'
-                        : 'bg-gray-50 border border-gray-200 hover:bg-blue-50 hover:border-blue-200'
+                        ? 'bg-gray-800 border-2 border-gray-600'
+                        : 'bg-gray-800/50 border border-gray-700 hover:bg-gray-800 hover:border-gray-600'
                     }`}
                   >
                     <div className="flex items-start gap-4">
@@ -58,7 +58,7 @@ export default function () {
                         className={`p-2 rounded-lg transition-colors duration-300 ${
                           isActive
                             ? 'bg-blue-600'
-                            : 'bg-gray-400 group-hover:bg-blue-600'
+                            : 'bg-gray-600 group-hover:bg-blue-600'
                         }`}
                       >
                         <IconComponent className="w-6 h-6 text-white" />
@@ -67,8 +67,8 @@ export default function () {
                         <h3
                           className={`text-xl font-semibold mb-2 transition-colors duration-300 ${
                             isActive
-                              ? 'text-blue-900'
-                              : 'text-gray-600 hover:text-blue-900'
+                              ? 'text-white'
+                              : 'text-gray-300 hover:text-white'
                           }`}
                         >
                           {feature.title}
@@ -76,8 +76,8 @@ export default function () {
                         <p
                           className={`transition-colors duration-300 ${
                             isActive
-                              ? 'text-blue-700'
-                              : 'text-gray-500 hover:text-blue-700'
+                              ? 'text-gray-300'
+                              : 'text-gray-400 hover:text-gray-300'
                           }`}
                         >
                           {feature.description}
@@ -91,9 +91,9 @@ export default function () {
 
             {/* Right Image/GIF Section */}
             <div className="relative">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 shadow-xl">
+              <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 shadow-xl border border-gray-700">
                 {/* Placeholder for your GIF */}
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div className="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-600">
                   <img 
                     src="/og.gif" 
                     alt="AI matching process visualization"

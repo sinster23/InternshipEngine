@@ -82,13 +82,13 @@ export default function () {
           
           @keyframes pulseGlow {
             0%, 100% { 
-              background-color: rgb(219 234 254);
-              border-color: rgb(147 197 253);
+              background-color: rgb(75 85 99);
+              border-color: rgb(107 114 128);
               transform: scale(1);
             }
             50% { 
-              background-color: rgb(191 219 254);
-              border-color: rgb(59 130 246);
+              background-color: rgb(55 65 81);
+              border-color: rgb(75 85 99);
               transform: scale(1.05);
             }
           }
@@ -102,23 +102,22 @@ export default function () {
           }
         `
       }} />
-      
-      <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
+      <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-800 via-gray-900 to-black">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className={`transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-blue-900 mb-6 leading-tight">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
                 Find Your Perfect
-                <span className="text-blue-600 block">
+                <span className="text-blue-400 block">
                   PM Internship
                 </span>
-                <span className="text-blue-800 block text-3xl md:text-4xl lg:text-5xl mt-2">
+                <span className="text-gray-300 block text-3xl md:text-4xl lg:text-5xl mt-2">
                   with AI.
                 </span>
               </h1>
-              <p className="text-lg md:text-xl text-blue-700 mb-8 leading-relaxed">
-                #1 AI internship platform for <span className="text-blue-600 font-semibold">students</span>, <span className="text-blue-600 font-semibold">teams</span>, and <span className="text-blue-600 font-semibold">organizations</span>.
+              <p className="text-lg md:text-xl text-gray-300 mb-8 leading-relaxed">
+                #1 AI internship platform for <span className="text-blue-400 font-semibold">students</span>, <span className="text-blue-400 font-semibold">teams</span>, and <span className="text-blue-400 font-semibold">organizations</span>.
               </p>
               
               <div className="mb-8">
@@ -127,13 +126,13 @@ export default function () {
                   <ArrowRight className="w-5 h-5" />
                 </button>
                 
-                <div className="space-y-2 text-blue-700">
+                <div className="space-y-2 text-gray-300">
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <CheckCircle className="w-5 h-5 text-green-400" />
                     <span>Yes, it's 100% free! AI-powered matching</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <CheckCircle className="w-5 h-5 text-green-400" />
                     <span>We don't train AI on your data</span>
                   </div>
                 </div>
@@ -141,69 +140,8 @@ export default function () {
             </div>
 
             {/* Right Image Section - Animated Internship Finder */}
-            <div className={`relative transform transition-all duration-1000 delay-300 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}>
-              <div className="bg-white rounded-2xl shadow-2xl p-6 relative overflow-hidden h-[500px]">
-                {/* Browser Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  </div>
-                  <div className="text-sm text-gray-600">Find PM Internships</div>
-                </div>
-
-                {/* Domain Selection Filter - Animated */}
-                <div className="mb-4">
-                  <div className="flex gap-2 flex-wrap">
-                    {['Tech', 'Fintech', 'Healthcare', 'E-commerce', 'Startup'].map((domain, index) => (
-                      <div
-                        key={domain}
-                        className={`px-3 py-1 text-xs rounded-full border-2 cursor-pointer transition-all duration-500 ${
-                          index === 0 || index === 2 
-                            ? 'pulse-domain text-blue-700' 
-                            : 'bg-gray-100 border-gray-300 text-gray-600 hover:bg-blue-50 hover:border-blue-200'
-                        }`}
-                      >
-                        {domain}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Scrolling Internship Cards */}
-                <div className="relative h-80 overflow-hidden">
-                  <div className="scroll-container">
-                    <div className="space-y-0">
-                      {[...internships, ...internships].map((internship, index) => (
-                        <InternshipCard 
-                          key={`${internship.company}-${index}`}
-                          company={internship.company}
-                          role={internship.role}
-                          location={internship.location}
-                          match={internship.match}
-                          color={internship.color}
-                          delay={`${index * 0.1}s`}
-                          index={index}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Gradient fade at bottom */}
-                  <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
-                </div>
-
-                {/* AI Match Indicator */}
-                <div 
-                  className="absolute top-20 right-6 bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-semibold"
-                  style={{
-                    animation: 'fadeInUp 0.8s ease-out 1s both, pulseGlow 3s infinite 2s'
-                  }}
-                >
-                  AI Match!
-                </div>
-              </div>
+            <div>
+              <img src="/modi1.jpg" alt="Internship Finder Mockup" className="w-full h-full rounded-2xl mb-8 border border-gray-700" />
             </div>
           </div>
         </div>

@@ -118,33 +118,33 @@ export default function Testimonials() {
   }, []); // run once
 
   return (
-    <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-white to-blue-50 overflow-hidden">
+    <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-blue-900 mb-6">Success Stories</h2>
-          <p className="text-xl text-blue-700 max-w-3xl mx-auto">Hear from students who landed their dream PM internships through our platform.</p>
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Success Stories</h2>
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto">Hear from students who landed their dream PM internships through our platform.</p>
         </div>
 
         <div className="relative">
-          <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-blue-50 to-transparent z-10 pointer-events-none"></div>
-          <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-blue-50 to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-gray-900 to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-gray-900 to-transparent z-10 pointer-events-none"></div>
 
           {/* container (overflow hidden) */}
           <div ref={containerRef} className="w-full overflow-hidden">
             {/* content (translateX applied here) */}
             <div ref={contentRef} className="flex gap-6 will-change-transform">
               {loopItems.map((t, i) => (
-                <div key={i} className="flex-shrink-0 w-80 bg-white border border-blue-100 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 hover:border-blue-200 group">
+                <div key={i} className="flex-shrink-0 w-80 bg-gray-800 border border-gray-700 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 hover:border-gray-600 group">
                   <div className="flex items-center mb-6">
                     <div className="relative">
-                      <img loading="lazy" src={t.avatar} alt={t.name} className="w-16 h-16 rounded-full object-cover border-4 border-blue-100 group-hover:border-blue-200 transition-colors duration-300" />
-                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                      <img loading="lazy" src={t.avatar} alt={t.name} className="w-16 h-16 rounded-full object-cover border-4 border-gray-600 group-hover:border-blue-400 transition-colors duration-300" />
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-gray-800 flex items-center justify-center">
                         <div className="w-2 h-2 bg-white rounded-full"></div>
                       </div>
                     </div>
                     <div className="ml-4">
-                      <div className="text-blue-900 font-semibold text-lg">{t.name}</div>
-                      <div className="text-blue-600 text-sm font-medium">{t.role}</div>
+                      <div className="text-white font-semibold text-lg">{t.name}</div>
+                      <div className="text-blue-400 text-sm font-medium">{t.role}</div>
                     </div>
                   </div>
 
@@ -152,7 +152,7 @@ export default function Testimonials() {
                     {[...Array(t.rating)].map((_, k) => <Star key={k} className="w-5 h-5 text-yellow-400 fill-current" />)}
                   </div>
 
-                  <p className="text-blue-700 leading-relaxed text-sm">"{t.content}"</p>
+                  <p className="text-gray-300 leading-relaxed text-sm">"{t.content}"</p>
 
                   <div className="mt-6 flex justify-end">
                     <div className="w-8 h-1 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"></div>
@@ -164,7 +164,7 @@ export default function Testimonials() {
         </div>
 
         <div className="text-center mt-16">
-          <p className="text-blue-600 text-lg mb-6">Ready to write your own success story?</p>
+          <p className="text-blue-400 text-lg mb-6">Ready to write your own success story?</p>
           <button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-full font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">Get Started Today</button>
         </div>
       </div>

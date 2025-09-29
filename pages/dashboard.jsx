@@ -153,7 +153,7 @@ const GettingStartedSection = () => {
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-      <h2 className="text-xl font-medium text-gray-900 mb-6">Get started with InternMatch</h2>
+      <h2 className="text-xl font-medium text-gray-900 mb-6">Get started with InternSathi</h2>
       
       <div className="space-y-6">
         {steps.map((step, index) => (
@@ -558,7 +558,7 @@ const Sidebar = ({ activeTab, setActiveTab, user, signOut }) => {
   return (
     <div className="w-64 bg-white border-r border-gray-200 h-screen fixed left-0 top-0 flex flex-col">
       <div className="p-6 border-b border-gray-200">
-        <h1 className="text-xl font-medium text-blue-600">InternMatch</h1>
+        <h1 className="text-xl font-medium text-blue-600">InternSathi</h1>
       </div>
       
       <nav className="flex-1 p-4">
@@ -588,13 +588,13 @@ const Sidebar = ({ activeTab, setActiveTab, user, signOut }) => {
 // Loading Component
 const LoadingScreen = () => {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-gray-800 via-gray-900 to-black flex items-center justify-center">
       <div className="text-center">
         <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
           <div className="w-8 h-8 bg-blue-600 rounded-full"></div>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Loading InternMatch...</h3>
-        <p className="text-gray-600">Please wait while we load your dashboard</p>
+        <h3 className="text-lg font-medium text-white mb-2">Loading InternSathi...</h3>
+        <p className="text-gray-300">Please wait while we load your dashboard</p>
       </div>
     </div>
   );

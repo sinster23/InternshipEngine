@@ -8,28 +8,28 @@ export default function TrustedCompanies() {
 
   const features = [
     {
-      icon: <Clock className="w-12 h-12 text-green-600" />,
+      icon: <Clock className="w-12 h-12 text-blue-400" />,
       value: "7.6",
       label: "more focus time",
       sublabel: "hours/week",
       description: "Smart matching reduces time spent searching for the right internship"
     },
     {
-      icon: <Calendar className="w-12 h-12 text-green-600" />,
+      icon: <Calendar className="w-12 h-12 text-blue-400" />,
       value: "2.3",
       label: "fewer unnecessary",
       sublabel: "interviews/week",
       description: "Pre-qualified matches mean better interview-to-offer ratios"
     },
     {
-      icon: <BarChart3 className="w-12 h-12 text-green-600" />,
+      icon: <BarChart3 className="w-12 h-12 text-blue-400" />,
       value: "4.5",
       label: "fewer overtime",
       sublabel: "hours/week",
       description: "Efficient matching process saves time for what matters most"
     },
     {
-      icon: <Target className="w-12 h-12 text-green-600" />,
+      icon: <Target className="w-12 h-12 text-blue-400" />,
       value: "60%",
       label: "less unproductive",
       sublabel: "application switching",
@@ -40,7 +40,7 @@ export default function TrustedCompanies() {
   return (
     <>
       {/* Trusted Companies Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="py-16 bg-gradient-to-r from-gray-800 to-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-white text-lg font-medium mb-8">
@@ -53,7 +53,7 @@ export default function TrustedCompanies() {
                 {[...companies, ...companies].map((company, index) => (
                   <div
                     key={index}
-                    className="flex-shrink-0 text-white/80 text-2xl font-bold tracking-wide mx-8"
+                    className="flex-shrink-0 text-gray-300 text-2xl font-bold tracking-wide mx-8"
                   >
                     {company}
                   </div>
@@ -65,14 +65,14 @@ export default function TrustedCompanies() {
       </section>
 
       {/* Productivity Focus Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-black">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-4">
-            <p className="text-gray-600 text-lg mb-6">
+            <p className="text-gray-400 text-lg mb-6">
               Deleting meetings doesn't work – you need to prioritize focus time.
             </p>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-16">
-              Reclaim <span className="text-green-600">395</span> hours of focus time/user every year
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-16">
+              Reclaim <span className="text-blue-400">395</span> hours of focus time/user every year
             </h2>
           </div>
 
@@ -82,16 +82,16 @@ export default function TrustedCompanies() {
                 <div className="mb-6 flex justify-center">
                   {feature.icon}
                 </div>
-                <div className="text-6xl md:text-7xl font-bold text-green-600 mb-2">
+                <div className="text-6xl md:text-7xl font-bold text-blue-400 mb-2">
                   {feature.value}
                 </div>
-                <div className="text-gray-800 font-medium text-lg mb-1">
+                <div className="text-white font-medium text-lg mb-1">
                   {feature.label}
                 </div>
-                <div className="text-gray-600 text-sm mb-4">
+                <div className="text-gray-400 text-sm mb-4">
                   {feature.sublabel}
                 </div>
-                <p className="text-gray-600 text-sm leading-relaxed">
+                <p className="text-gray-400 text-sm leading-relaxed">
                   {feature.description}
                 </p>
               </div>

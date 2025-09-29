@@ -130,42 +130,42 @@ export default function SignUpPage() {
     setLoading(false);
   };
 
-  return (
-    <div className="min-h-screen bg-white flex">
+ return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex">
       {/* Left Side - Sign Up Form */}
       <div className="w-full md:w-2/5 flex items-center justify-center p-6">
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent mb-3">
-              Welcome to InternMatch
+            <h1 className="text-4xl font-bold text-white tracking-tight mb-3">
+              InternSathi
             </h1>
-            <p className="text-xl font-semibold text-blue-700">
+            <p className="text-xl font-semibold text-gray-300">
               Create your account to get started
             </p>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center">
-              <AlertCircle className="h-4 w-4 text-red-500 mr-2 flex-shrink-0" />
-              <span className="text-red-700 text-sm">{error}</span>
+            <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg flex items-center">
+              <AlertCircle className="h-4 w-4 text-red-400 mr-2 flex-shrink-0" />
+              <span className="text-red-300 text-sm">{error}</span>
             </div>
           )}
 
           {/* Success Message */}
           {successMessage && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center">
-              <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-              <span className="text-green-700 text-sm">{successMessage}</span>
+            <div className="mb-4 p-3 bg-green-900/50 border border-green-700 rounded-lg flex items-center">
+              <CheckCircle className="h-4 w-4 text-green-400 mr-2 flex-shrink-0" />
+              <span className="text-green-300 text-sm">{successMessage}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-4">
             {/* Email Input */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email address <span className="text-red-500">*</span>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                Email address <span className="text-red-400">*</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -178,17 +178,16 @@ export default function SignUpPage() {
                   value={formData.email}
                   onChange={handleInputChange}
                   disabled={loading}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-600 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-400"
                   placeholder="Enter your email"
-                  required
                 />
               </div>
             </div>
 
             {/* Password Input */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password <span className="text-red-500">*</span>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+                Password <span className="text-red-400">*</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -201,9 +200,8 @@ export default function SignUpPage() {
                   value={formData.password}
                   onChange={handleInputChange}
                   disabled={loading}
-                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="block w-full pl-10 pr-10 py-3 border border-gray-600 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-400"
                   placeholder="Create a strong password"
-                  required
                 />
                 <button
                   type="button"
@@ -212,9 +210,9 @@ export default function SignUpPage() {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center disabled:opacity-50"
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-300" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-300" />
                   )}
                 </button>
               </div>
@@ -223,7 +221,7 @@ export default function SignUpPage() {
               {passwordValidation && formData.password && (
                 <div className="mt-2 space-y-2">
                   <div className="flex items-center space-x-2">
-                    <div className="flex-1 bg-gray-200 rounded-full h-2">
+                    <div className="flex-1 bg-gray-700 rounded-full h-2">
                       <div 
                         className={`h-2 rounded-full transition-all duration-300 ${
                           passwordValidation.strength < 2 ? 'bg-red-500 w-1/4' :
@@ -233,9 +231,9 @@ export default function SignUpPage() {
                       />
                     </div>
                     <span className={`text-xs font-medium ${
-                      passwordValidation.strength < 2 ? 'text-red-500' :
-                      passwordValidation.strength < 4 ? 'text-yellow-500' : 
-                      'text-green-500'
+                      passwordValidation.strength < 2 ? 'text-red-400' :
+                      passwordValidation.strength < 4 ? 'text-yellow-400' : 
+                      'text-green-400'
                     }`}>
                       {passwordValidation.message}
                     </span>
@@ -247,7 +245,7 @@ export default function SignUpPage() {
                       'Lowercase letter': passwordValidation.requirements.hasLowerCase,
                       'Number': passwordValidation.requirements.hasNumbers,
                     }).map(([requirement, met]) => (
-                      <div key={requirement} className={`flex items-center space-x-1 ${met ? 'text-green-600' : 'text-gray-400'}`}>
+                      <div key={requirement} className={`flex items-center space-x-1 ${met ? 'text-green-400' : 'text-gray-500'}`}>
                         {met ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
                         <span>{requirement}</span>
                       </div>
@@ -259,9 +257,9 @@ export default function SignUpPage() {
 
             {/* Create Account Button */}
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 mt-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              onClick={handleSubmit}
+              disabled={loading || !formData.email || !formData.password}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-colors duration-200 mt-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
               {loading ? (
                 <>
@@ -272,15 +270,15 @@ export default function SignUpPage() {
                 'Create Account'
               )}
             </button>
-          </form>
+          </div>
 
           {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
+              <div className="w-full border-t border-gray-600"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">OR</span>
+              <span className="px-2 bg-gray-900 text-gray-400">OR</span>
             </div>
           </div>
 
@@ -290,7 +288,7 @@ export default function SignUpPage() {
               type="button"
               onClick={handleGoogleSignUp}
               disabled={loading}
-              className="w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gray-700 border border-gray-600 text-gray-300 py-3 px-4 rounded-lg font-medium hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
@@ -309,7 +307,7 @@ export default function SignUpPage() {
               type="button"
               onClick={handleAppleSignUp}
               disabled={loading}
-              className="w-full bg-black text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-white text-black py-3 px-4 rounded-lg font-medium hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
@@ -322,13 +320,13 @@ export default function SignUpPage() {
 
           {/* Footer Links */}
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-400">
               Already have an account?{' '}
-              <Link to="/signin" className="text-blue-600 hover:text-blue-800 font-medium">
+              <a href="/signin" className="text-blue-400 hover:text-blue-300 font-medium">
                 Sign in here
-              </Link>
+              </a>
             </p>
-            <p className="text-xs text-blue-500 mt-2">
+            <p className="text-xs text-gray-500 mt-2">
               By signing up, you agree to our Terms of Service and Privacy Policy
             </p>
           </div>
@@ -336,24 +334,22 @@ export default function SignUpPage() {
       </div>
 
       {/* Right Side - Modern Animated Background */}
-      <div className="hidden md:block md:w-3/5 relative overflow-hidden">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
-        </div>
-
+      <div className="hidden md:block md:w-3/5 relative overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900">
         {/* Content */}
         <div className="relative z-10 h-full flex items-center justify-center p-16">
-          <div className="text-center text-white max-w-2xl">
+          <div className="text-center max-w-3xl">
             {/* GIF Container with Enhanced Modern Frame */}
             <div className="relative">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 shadow-xl">
+              <div className="bg-gradient-to-br from-gray-700 to-gray-800 rounded-2xl p-8 shadow-2xl border border-gray-600">
                 {/* Placeholder for your GIF */}
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                  <img 
+                <div className="bg-gray-900 rounded-xl shadow-lg overflow-hidden border border-gray-700">
+                  <div className="aspect-video bg-gradient-to-br from-blue-900/20 to-purple-900/20 flex items-center justify-center">
+                     <img 
                     src="/ok2.gif" 
                     alt="AI matching process visualization"
                     className="w-full h-auto"
                   />
+                  </div>
                 </div>
                 
                 {/* Floating elements for visual interest */}
@@ -367,8 +363,8 @@ export default function SignUpPage() {
             </div>
 
             {/* Enhanced Modern Typography */}
-            <div className="space-y-6 mt-2">
-              <p className="text-lg text-blue-800 leading-relaxed max-w-lg mx-auto">
+            <div className="space-y-6 mt-8">
+              <p className="text-lg text-gray-300 leading-relaxed max-w-lg mx-auto">
                 Join thousands of students who've kickstarted their careers with our platform
               </p>
             </div>
