@@ -30,6 +30,7 @@ import { auth, db } from "../src/firebase"; // adjust path if needed
 import { doc, getDoc } from "firebase/firestore";
 import ProfilePage from './profile';
 import InternshipPage from './internship';
+import ApplicationsPage from './application';
 
 // Hero Section Component
 const HeroSection = ({ user }) => {
@@ -671,10 +672,14 @@ const InternshipDashboard = () => {
             )}
 
             {activeTab === 'internships' && (
-              <InternshipPage />
+              <InternshipPage setActiveTab={setActiveTab} />
+            )}
+
+            {activeTab === 'applications' && (
+              <ApplicationsPage setActiveTab={setActiveTab} />
             )}
             
-            {activeTab !== 'dashboard' && activeTab !== 'profile' && activeTab !== 'internships' && (
+            {activeTab !== 'dashboard' && activeTab !== 'profile' && activeTab !== 'internships' && activeTab !== 'applications' && (
               <div className="flex items-center justify-center h-96">
                 <div className="text-center">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">

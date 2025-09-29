@@ -9,6 +9,7 @@ import Details from "../pages/details.jsx";
 import Dashboard from "../pages/dashboard.jsx";
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
 import AuthRedirectRoute from "../components/AuthRedirect.jsx";
+import ApplicationsPage from "../pages/application.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -51,6 +52,14 @@ createRoot(document.getElementById("root")).render(
           element={
             <ProtectedRoute requiresCompleteProfile={true}>
               <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+             <Route 
+          path="/application" 
+          element={
+            <ProtectedRoute requiresCompleteProfile={true}>
+              <ApplicationsPage />
             </ProtectedRoute>
           } 
         />
